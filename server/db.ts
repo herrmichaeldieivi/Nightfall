@@ -70,9 +70,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    await db.insert(users).values(values).onConflictDoUpdate({ target: users.openId, set: updateSet });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -129,7 +127,7 @@ export async function getUserKey(userId: number) {
 export async function createUserKey(userId: number, wrappedDek: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
-  await db.insert(userKeys).values({ userId, wrappedDek }).onDuplicateKeyUpdate({ set: { wrappedDek } });
+  await db.insert(userKeys).values({ userId, wrappedDek }).onConflictDoUpdate({ target: userKeys.userId, set: { wrappedDek } });
 }
 
 /**
@@ -196,9 +194,7 @@ export async function saveWorkspaceProfile(userId: number, input: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
-  await db.insert(workspaceProfiles).values({ userId, ...input, onboardingComplete: true }).onDuplicateKeyUpdate({
-    set: { ...input, onboardingComplete: true },
-  });
+  await db.insert(workspaceProfiles).values({ userId, ...input, onboardingComplete: true }).onConflictDoUpdate({ target: workspaceProfiles.userId, set: { ...input, onboardingComplete: true } });
   return getWorkspaceProfile(userId);
 }
 
@@ -285,7 +281,7 @@ export async function saveStudentFitProfile(userId: number, input: StudentFitPro
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
   const values = { userId, studyDirection: input.studyDirection, studyLevel: input.studyLevel || null, academicAverage: input.academicAverage || null, gradeScale: input.gradeScale || null, qualifications: input.qualifications || null, nationality: input.nationality || null, languageComfort: input.languageComfort || null, tuitionBudgetBand: input.tuitionBudgetBand || null, fundingRoute: input.fundingRoute || null, hasSponsor: input.hasSponsor, priorities: input.priorities || null, matchingConsentAt: input.consent ? new Date() : null };
-  await db.insert(studentFitProfiles).values(values).onDuplicateKeyUpdate({ set: values });
+  await db.insert(studentFitProfiles).values(values).onConflictDoUpdate({ target: studentFitProfiles.userId, set: values });
   // Only the actual consent moment counts as "consultation completed" —
   // this function is also called on intermediate onboarding steps before
   // consent, which should not each produce a lifecycle event.
@@ -296,7 +292,7 @@ export async function saveStudentFitProfile(userId: number, input: StudentFitPro
 export async function saveStudentProfile(userId: number, input: { preferredName: string; contactEmail: string; phoneNumber: string; destination: string; graduationYear: string; highSchoolDiplomaOrigin: string; preferredLanguage: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
-  await db.insert(studentProfiles).values({ userId, ...input, onboardingComplete: true }).onDuplicateKeyUpdate({ set: { ...input, onboardingComplete: true } });
+  await db.insert(studentProfiles).values({ userId, ...input, onboardingComplete: true }).onConflictDoUpdate({ target: studentProfiles.userId, set: { ...input, onboardingComplete: true } });
   const existingReminders = await db.select().from(personalReminders).where(eq(personalReminders.userId, userId)).limit(1);
   if (!existingReminders[0]) {
     const isArabic = input.preferredLanguage === "ar";
@@ -311,7 +307,7 @@ export async function saveStudentProfile(userId: number, input: { preferredName:
 export async function getStudentConsultationCycle(userId: number, cycleKey: string) {
   const db = await getDb();
   if (!db) return null;
-  await db.insert(studentConsultationCycles).values({ userId, cycleKey }).onDuplicateKeyUpdate({ set: { cycleKey } });
+  await db.insert(studentConsultationCycles).values({ userId, cycleKey }).onConflictDoUpdate({ target: [studentConsultationCycles.userId, studentConsultationCycles.cycleKey], set: { cycleKey } });
   const result = await db.select().from(studentConsultationCycles).where(and(eq(studentConsultationCycles.userId, userId), eq(studentConsultationCycles.cycleKey, cycleKey))).limit(1);
   const cycle = result[0] ?? null;
   return cycle ? { ...cycle, remainingUses: Math.max(0, cycle.includedUses - cycle.usedCount) } : null;
@@ -417,7 +413,7 @@ export async function saveUniversityContact(userId: number, input: { universityI
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
   await assertOwnedUniversity(userId, input.universityId);
-  await db.insert(universityContacts).values({ userId, universityId: input.universityId, contactName: input.contactName || null, contactRole: input.contactRole || null, email: input.email, phone: input.phone || null, portalUrl: input.portalUrl || null, relationshipStage: input.relationshipStage, contactPreference: input.contactPreference }).onDuplicateKeyUpdate({ set: { contactName: input.contactName || null, contactRole: input.contactRole || null, phone: input.phone || null, portalUrl: input.portalUrl || null, relationshipStage: input.relationshipStage, contactPreference: input.contactPreference, studentConfirmedAt: new Date() } });
+  await db.insert(universityContacts).values({ userId, universityId: input.universityId, contactName: input.contactName || null, contactRole: input.contactRole || null, email: input.email, phone: input.phone || null, portalUrl: input.portalUrl || null, relationshipStage: input.relationshipStage, contactPreference: input.contactPreference }).onConflictDoUpdate({ target: [universityContacts.userId, universityContacts.universityId, universityContacts.email], set: { contactName: input.contactName || null, contactRole: input.contactRole || null, phone: input.phone || null, portalUrl: input.portalUrl || null, relationshipStage: input.relationshipStage, contactPreference: input.contactPreference, studentConfirmedAt: new Date() } });
   return listUniversityRelationshipWorkspace(userId);
 }
 
@@ -435,8 +431,8 @@ export async function createUniversityCommunicationDraft(userId: number, input: 
   if (!db) throw new Error("Database is unavailable");
   await assertOwnedUniversity(userId, input.universityId);
   if (input.contactId) await assertOwnedContact(userId, input.contactId, input.universityId);
-  const created = await db.insert(universityCommunications).values({ userId, universityId: input.universityId, contactId: input.contactId ?? null, direction: "outbound", status: "draft", subject: input.subject, body: input.body, category: input.category });
-  const communicationId = Number(created[0].insertId);
+  const created = await db.insert(universityCommunications).values({ userId, universityId: input.universityId, contactId: input.contactId ?? null, direction: "outbound", status: "draft", subject: input.subject, body: input.body, category: input.category }).returning({ id: universityCommunications.id });
+  const communicationId = created[0].id;
   await recordCommunicationAudit(userId, { communicationId, eventType: "draft_created", eventJson: { origin: "student_workspace" } });
   return communicationId;
 }
@@ -467,8 +463,8 @@ export async function createUniversityFollowUpPlan(userId: number, input: { univ
   if (!db) throw new Error("Database is unavailable");
   await assertOwnedUniversity(userId, input.universityId);
   if (input.contactId) await assertOwnedContact(userId, input.contactId, input.universityId);
-  const created = await db.insert(universityFollowUpPlans).values({ userId, universityId: input.universityId, contactId: input.contactId ?? null, dueAt: input.dueAt, reason: input.reason });
-  const followUpPlanId = Number(created[0].insertId);
+  const created = await db.insert(universityFollowUpPlans).values({ userId, universityId: input.universityId, contactId: input.contactId ?? null, dueAt: input.dueAt, reason: input.reason }).returning({ id: universityFollowUpPlans.id });
+  const followUpPlanId = created[0].id;
   if (input.contactId) await db.update(universityContacts).set({ nextFollowUpAt: input.dueAt }).where(and(eq(universityContacts.id, input.contactId), eq(universityContacts.userId, userId)));
   await recordCommunicationAudit(userId, { followUpPlanId, eventType: "follow_up_planned", eventJson: { dueAt: input.dueAt.toISOString() } });
   return listUniversityRelationshipWorkspace(userId);
@@ -491,7 +487,7 @@ export async function saveStudentGmailConnection(userId: number, input: { emailA
   // Double-wrap the provider-encrypted token under the user's DEK so that
   // crypto-shredding the DEK also destroys Gmail access credentials at rest.
   const sealedToken = (await encryptForUser(userId, input.encryptedRefreshToken)) ?? "";
-  await db.insert(studentInboxConnections).values({ userId, provider: "gmail", emailAddress: input.emailAddress, encryptedRefreshToken: sealedToken || input.encryptedRefreshToken, gmailHistoryId: input.gmailHistoryId ?? null, watchExpiresAt: input.watchExpiresAt ?? null, disconnectedAt: null, lastSyncedAt: new Date() }).onDuplicateKeyUpdate({ set: { emailAddress: input.emailAddress, encryptedRefreshToken: sealedToken || input.encryptedRefreshToken, gmailHistoryId: input.gmailHistoryId ?? null, watchExpiresAt: input.watchExpiresAt ?? null, disconnectedAt: null, lastSyncedAt: new Date() } });
+  await db.insert(studentInboxConnections).values({ userId, provider: "gmail", emailAddress: input.emailAddress, encryptedRefreshToken: sealedToken || input.encryptedRefreshToken, gmailHistoryId: input.gmailHistoryId ?? null, watchExpiresAt: input.watchExpiresAt ?? null, disconnectedAt: null, lastSyncedAt: new Date() }).onConflictDoUpdate({ target: studentInboxConnections.userId, set: { emailAddress: input.emailAddress, encryptedRefreshToken: sealedToken || input.encryptedRefreshToken, gmailHistoryId: input.gmailHistoryId ?? null, watchExpiresAt: input.watchExpiresAt ?? null, disconnectedAt: null, lastSyncedAt: new Date() } });
   await recordCommunicationAudit(userId, { eventType: "inbox_connected", eventJson: { provider: "gmail", emailAddress: input.emailAddress } });
   return listUniversityRelationshipWorkspace(userId);
 }
@@ -565,8 +561,8 @@ export async function importUniversityInboundCommunication(userId: number, input
   if (!db) throw new Error("Database is unavailable");
   const existing = await db.select({ id: universityCommunications.id }).from(universityCommunications).where(and(eq(universityCommunications.userId, userId), eq(universityCommunications.providerMessageId, input.providerMessageId))).limit(1);
   if (existing[0]) return { communicationId: existing[0].id, imported: false };
-  const created = await db.insert(universityCommunications).values({ userId, universityId: input.universityId, contactId: input.contactId, direction: "inbound", status: "needs_review", subject: input.subject || "University reply", body: input.body, category: "needs_review", providerMessageId: input.providerMessageId, providerThreadId: input.providerThreadId ?? null, receivedAt: input.receivedAt });
-  const communicationId = Number(created[0].insertId);
+  const created = await db.insert(universityCommunications).values({ userId, universityId: input.universityId, contactId: input.contactId, direction: "inbound", status: "needs_review", subject: input.subject || "University reply", body: input.body, category: "needs_review", providerMessageId: input.providerMessageId, providerThreadId: input.providerThreadId ?? null, receivedAt: input.receivedAt }).returning({ id: universityCommunications.id });
+  const communicationId = created[0].id;
   await db.update(universityContacts).set({ relationshipStage: "responded", lastContactAt: input.receivedAt }).where(and(eq(universityContacts.id, input.contactId), eq(universityContacts.userId, userId)));
   await recordCommunicationAudit(userId, { communicationId, eventType: "reply_imported", eventJson: { provider: "gmail", providerMessageId: input.providerMessageId } });
   return { communicationId, imported: true };
@@ -632,7 +628,7 @@ export async function saveGermanyProgramme(userId: number, programmeId: string) 
   if (!db) throw new Error("Database is unavailable");
   const sourceProgramme = await db.select({ programmeId: germanyProgrammeIndex.programmeId }).from(germanyProgrammeIndex).where(eq(germanyProgrammeIndex.programmeId, programmeId)).limit(1);
   if (!sourceProgramme[0]) throw new Error("Programme is not available in the reviewed Germany research index");
-  await db.insert(savedGermanyProgrammes).values({ userId, programmeId }).onDuplicateKeyUpdate({ set: { programmeId, archivedAt: null } });
+  await db.insert(savedGermanyProgrammes).values({ userId, programmeId }).onConflictDoUpdate({ target: [savedGermanyProgrammes.userId, savedGermanyProgrammes.programmeId], set: { programmeId, archivedAt: null } });
   await recordApplicationEvent(userId, { programmeId, country: "germany", eventType: "programme_saved" });
   return listSavedGermanyProgrammes(userId);
 }
@@ -748,7 +744,7 @@ export async function saveItalyProgramme(userId: number, programmeId: string) {
   if (!db) throw new Error("Database is unavailable");
   const sourceProgramme = await db.select({ programmeId: italyProgrammeIndex.programmeId }).from(italyProgrammeIndex).where(eq(italyProgrammeIndex.programmeId, programmeId)).limit(1);
   if (!sourceProgramme[0]) throw new Error("Programme is not available in the reviewed Italy research index");
-  await db.insert(savedItalyProgrammes).values({ userId, programmeId }).onDuplicateKeyUpdate({ set: { programmeId, archivedAt: null } });
+  await db.insert(savedItalyProgrammes).values({ userId, programmeId }).onConflictDoUpdate({ target: [savedItalyProgrammes.userId, savedItalyProgrammes.programmeId], set: { programmeId, archivedAt: null } });
   await recordApplicationEvent(userId, { programmeId, country: "italy", eventType: "programme_saved" });
   return listSavedItalyProgrammes(userId);
 }
@@ -836,7 +832,7 @@ export async function saveGermanyProgrammeBriefing(userId: number, programmeId: 
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
   const generatedAt = new Date();
-  await db.insert(programmeResearchBriefings).values({ userId, programmeId, locale, sourceUrl, contentHash, briefingJson, generatedAt }).onDuplicateKeyUpdate({ set: { sourceUrl, contentHash, briefingJson, generatedAt } });
+  await db.insert(programmeResearchBriefings).values({ userId, programmeId, locale, sourceUrl, contentHash, briefingJson, generatedAt }).onConflictDoUpdate({ target: [programmeResearchBriefings.userId, programmeResearchBriefings.programmeId, programmeResearchBriefings.locale], set: { sourceUrl, contentHash, briefingJson, generatedAt } });
   return getCachedGermanyProgrammeBriefing(userId, programmeId, locale);
 }
 
@@ -851,7 +847,7 @@ export async function handoffGermanyProgrammeDeadline(userId: number, programmeI
   if (!db) throw new Error("Database is unavailable");
   const programme = await db.select({ programmeId: germanyProgrammeIndex.programmeId, programmeEvidenceUrl: germanyProgrammeIndex.programmeEvidenceUrl }).from(savedGermanyProgrammes).innerJoin(germanyProgrammeIndex, eq(savedGermanyProgrammes.programmeId, germanyProgrammeIndex.programmeId)).where(and(eq(savedGermanyProgrammes.userId, userId), eq(savedGermanyProgrammes.programmeId, programmeId), isNull(savedGermanyProgrammes.archivedAt))).limit(1);
   if (!programme[0]) throw new Error("Only an active saved programme can be added to this student calendar");
-  await db.insert(germanyProgrammeDeadlineHandoffs).values({ userId, programmeId, deadlineAt, officialEvidenceUrl: programme[0].programmeEvidenceUrl }).onDuplicateKeyUpdate({ set: { deadlineAt, officialEvidenceUrl: programme[0].programmeEvidenceUrl, reviewedAt: new Date() } });
+  await db.insert(germanyProgrammeDeadlineHandoffs).values({ userId, programmeId, deadlineAt, officialEvidenceUrl: programme[0].programmeEvidenceUrl }).onConflictDoUpdate({ target: [germanyProgrammeDeadlineHandoffs.userId, germanyProgrammeDeadlineHandoffs.programmeId], set: { deadlineAt, officialEvidenceUrl: programme[0].programmeEvidenceUrl, reviewedAt: new Date() } });
   return listGermanyProgrammeDeadlineHandoffs(userId);
 }
 
@@ -947,7 +943,7 @@ export async function getReminderPreferences(userId: number) {
 export async function saveReminderPreferences(userId: number, input: ReminderPreferenceInput) {
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
-  await db.insert(reminderPreferences).values({ userId, ...input }).onDuplicateKeyUpdate({ set: input });
+  await db.insert(reminderPreferences).values({ userId, ...input }).onConflictDoUpdate({ target: reminderPreferences.userId, set: input });
   return getReminderPreferences(userId);
 }
 
@@ -1014,7 +1010,7 @@ export async function createDeadlineAlertsForSchedule(scheduleCronTaskUid: strin
     const alertKey = getDeadlineAlertKey(preferences.userId, university.id, university.deadline ?? "", daysBefore);
     const title = locale === "ar" ? `${university.university} قربت` : `${university.university} is coming up`;
     const body = locale === "ar" ? `باقي ${daysBefore} ${daysBefore === 1 ? "يوم" : "أيام"} على آخر موعد. خُد دقيقة وراجع اللي جاهز.` : `${daysBefore} ${daysBefore === 1 ? "day" : "days"} until the deadline. Take a minute to review what is ready.`;
-    await db.insert(deadlineNotifications).values({ userId: preferences.userId, universityId: university.id, alertKey, title, body, locale, deadlineAt, daysBefore }).onDuplicateKeyUpdate({ set: { alertKey } });
+    await db.insert(deadlineNotifications).values({ userId: preferences.userId, universityId: university.id, alertKey, title, body, locale, deadlineAt, daysBefore }).onConflictDoUpdate({ target: deadlineNotifications.alertKey, set: { alertKey } });
     created += 1;
   }
   const followUpCreated = await createDueUniversityFollowUpNotifications(preferences.userId, locale, referenceDate);
@@ -1030,7 +1026,7 @@ export async function createDueUniversityFollowUpNotifications(userId: number, l
     const alertKey = `university-follow-up:${userId}:${plan.id}`;
     const title = locale === "ar" ? `وقت تراجع ${plan.university}` : `Time to review ${plan.university}`;
     const body = locale === "ar" ? `متابعة: ${plan.reason}. جهّز أو راجع المسودة، بس الإرسال بيضل قرارك.` : `Follow-up: ${plan.reason}. Prepare or review a draft, but sending remains your decision.`;
-    await db.insert(universityFollowUpNotifications).values({ userId, followUpPlanId: plan.id, alertKey, title, body, locale }).onDuplicateKeyUpdate({ set: { alertKey } });
+    await db.insert(universityFollowUpNotifications).values({ userId, followUpPlanId: plan.id, alertKey, title, body, locale }).onConflictDoUpdate({ target: universityFollowUpNotifications.alertKey, set: { alertKey } });
     await db.update(universityFollowUpPlans).set({ status: "draft_ready" }).where(eq(universityFollowUpPlans.id, plan.id));
     created += 1;
   }
@@ -1155,7 +1151,7 @@ export async function saveAdminIntakeDrafts(_adminUserId: number, uploadId: numb
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
   for (const draft of drafts) {
-    await db.insert(adminIntakeRecords).values({ uploadId, sourceRowNumber: draft.sourceRowNumber, sourceDigest: draft.sourceDigest, proposedProfileJson: JSON.stringify(draft.proposedProfile), extractionConfidence: draft.extractionConfidence }).onDuplicateKeyUpdate({ set: { proposedProfileJson: JSON.stringify(draft.proposedProfile), extractionConfidence: draft.extractionConfidence, reviewStatus: "pending_review", reviewerUserId: null, reviewNote: null, reviewedAt: null, committedAt: null } });
+    await db.insert(adminIntakeRecords).values({ uploadId, sourceRowNumber: draft.sourceRowNumber, sourceDigest: draft.sourceDigest, proposedProfileJson: JSON.stringify(draft.proposedProfile), extractionConfidence: draft.extractionConfidence }).onConflictDoUpdate({ target: [adminIntakeRecords.uploadId, adminIntakeRecords.sourceRowNumber], set: { proposedProfileJson: JSON.stringify(draft.proposedProfile), extractionConfidence: draft.extractionConfidence, reviewStatus: "pending_review", reviewerUserId: null, reviewNote: null, reviewedAt: null, committedAt: null } });
   }
   await db.update(adminIntakeUploads).set({ status: "ready_for_review", aiInvocationCount: 1, extractionNote: "Structured drafts prepared. An administrator must review each row before it is committed." }).where(eq(adminIntakeUploads.id, uploadId));
   return listAdminIntakeRecords(uploadId);

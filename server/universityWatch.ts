@@ -27,7 +27,7 @@ export async function upsertUniversitySourceCache(input: { sourceUrl: string; so
     return { cache: { ...existing, lastFetchedAt: now }, changed: false, previousText: existing.normalizedText };
   }
   const values = { sourceUrl: input.sourceUrl, sourceLabel: input.sourceLabel, contentHash, normalizedText, summary: input.summary ?? existing?.summary ?? null, lastFetchedAt: now, lastChangedAt: now };
-  await db.insert(universitySourceCaches).values(values).onDuplicateKeyUpdate({ set: values });
+  await db.insert(universitySourceCaches).values(values).onConflictDoUpdate({ target: universitySourceCaches.sourceUrl, set: values });
   const cache = (await db.select().from(universitySourceCaches).where(eq(universitySourceCaches.sourceUrl, input.sourceUrl)).limit(1))[0];
   return { cache, changed, previousText: existing?.normalizedText ?? null };
 }
@@ -74,7 +74,7 @@ export async function saveUniversityRequirementWatch(userId: number, input: { un
   if (!sourceUrl) throw new Error("This university does not have an official programme source to watch yet.");
   const sourceLabel = input.sourceLabel || `${university.university} · ${university.program}`;
   if (!university.sourceUrl && input.sourceUrl) await db.update(savedUniversities).set({ sourceUrl: input.sourceUrl }).where(eq(savedUniversities.id, university.id));
-  await db.insert(universityRequirementWatches).values({ userId, universityId: university.id, sourceUrl, sourceLabel, enabled: input.enabled }).onDuplicateKeyUpdate({ set: { sourceUrl, sourceLabel, enabled: input.enabled } });
+  await db.insert(universityRequirementWatches).values({ userId, universityId: university.id, sourceUrl, sourceLabel, enabled: input.enabled }).onConflictDoUpdate({ target: [universityRequirementWatches.userId, universityRequirementWatches.universityId], set: { sourceUrl, sourceLabel, enabled: input.enabled } });
   return (await db.select().from(universityRequirementWatches).where(and(eq(universityRequirementWatches.userId, userId), eq(universityRequirementWatches.universityId, university.id))).limit(1))[0] ?? null;
 }
 
@@ -96,7 +96,7 @@ export async function ensureUniversityWatchPreferences(userId: number) {
 export async function saveUniversityWatchPreferences(userId: number, input: UniversityWatchPreferenceInput) {
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
-  await db.insert(universityWatchPreferences).values({ userId, ...input }).onDuplicateKeyUpdate({ set: input });
+  await db.insert(universityWatchPreferences).values({ userId, ...input }).onConflictDoUpdate({ target: universityWatchPreferences.userId, set: input });
   return getUniversityWatchPreferences(userId);
 }
 
@@ -128,6 +128,6 @@ export async function createUniversityRequirementAlert(input: { userId: number; 
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
   const changeKey = `${input.userId}:${input.universityId}:${input.contentHash}`;
-  await db.insert(universityRequirementAlerts).values({ ...input, changeKey }).onDuplicateKeyUpdate({ set: { changeKey } });
+  await db.insert(universityRequirementAlerts).values({ ...input, changeKey }).onConflictDoUpdate({ target: universityRequirementAlerts.changeKey, set: { changeKey } });
   return changeKey;
 }

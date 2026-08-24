@@ -140,7 +140,9 @@ DEADLINE | APPLICATION_ACTION`. A unit test pins round-trip behavior for all pai
 | 5 | Context assembly refinement inside context builder (no new subsystem) | context covers profile+events+recent runs |
 | 6 | Shim deletion, boundary grep enforcement, full validation | check/test/build gates defined vs baseline |
 
-Known pre-existing debt carried into Phase 1 (from baseline): `planLimits.ts`
-broken db exports (blocks server bundle — fix early, standalone commit),
-`toggleLanguage` ×4, tRPC transformer typing in `main.tsx`,
-Date-vs-string types in `JourneyToolsLegacy.tsx`, `DashboardLayout.tsx` handler misuse.
+Known pre-existing debt carried into Phase 1 (from authoritative baseline capture 2):
+`toggleLanguage` ×4, Date-vs-string types in `JourneyToolsLegacy.tsx` ×8,
+tRPC transformer typing in `main.tsx`, handler misuse in `DashboardLayout.tsx`.
+None block the build; scheduled as a standalone hygiene commit within Phase 1.
+The uncommitted BYO-AI/planLimits workstream present in the tree during capture 1
+was external concurrent work — not baseline truth (pristine `cc6ad26` builds green).

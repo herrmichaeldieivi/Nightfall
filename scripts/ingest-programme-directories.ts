@@ -18,7 +18,8 @@
 // snapshots rather than incrementally-updated data.
 
 import { readFileSync } from "node:fs";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as XLSX from "xlsx";
 import { germanyProgrammeIndex, italyProgrammeIndex } from "../drizzle/schema";
 
@@ -141,7 +142,7 @@ async function ingestItaly(db: ReturnType<typeof drizzle>) {
 
 async function main() {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set. This script must be run against a real database connection.");
-  const db = drizzle(process.env.DATABASE_URL);
+  const db = drizzle(postgres(process.env.DATABASE_URL!, { prepare: false }));
   await ingestGermany(db);
   await ingestItaly(db);
   console.log("Done.");

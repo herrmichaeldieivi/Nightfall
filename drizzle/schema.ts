@@ -1,16 +1,50 @@
-import { boolean, index, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { boolean, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
+
+export const usersRoleEnum = pgEnum("users_role", ["user", "admin"]);
+export const universityContactsRelationshipStageEnum = pgEnum("university_contacts_relationship_stage", ["cold", "warm", "active", "responded", "paused"]);
+export const universityContactsContactPreferenceEnum = pgEnum("university_contacts_contact_preference", ["email", "portal", "do_not_contact"]);
+export const universityCommunicationsDirectionEnum = pgEnum("university_communications_direction", ["outbound", "inbound"]);
+export const universityCommunicationsStatusEnum = pgEnum("university_communications_status", ["draft", "ready_for_review", "student_approved", "provider_send_requested", "sent", "send_failed", "received", "needs_review", "archived"]);
+export const universityCommunicationsCategoryEnum = pgEnum("university_communications_category", ["general", "document_request", "interview", "decision", "next_step", "needs_review"]);
+export const universityFollowUpPlansStatusEnum = pgEnum("university_follow_up_plans_status", ["planned", "draft_ready", "completed", "cancelled"]);
+export const studentInboxConnectionsProviderEnum = pgEnum("student_inbox_connections_provider", ["gmail"]);
+export const universityCommunicationAuditEventsEventTypeEnum = pgEnum("university_communication_audit_events_event_type", ["draft_created", "draft_updated", "student_approved", "provider_send_requested", "sent", "send_failed", "reply_imported", "reply_categorized", "follow_up_planned", "follow_up_completed", "inbox_connected", "inbox_disconnected"]);
+export const adminIntakeUploadsSourceKindEnum = pgEnum("admin_intake_uploads_source_kind", ["cv", "spreadsheet"]);
+export const adminIntakeUploadsStatusEnum = pgEnum("admin_intake_uploads_status", ["uploaded", "extracting", "ready_for_review", "failed", "rejected", "committed"]);
+export const adminIntakeRecordsReviewStatusEnum = pgEnum("admin_intake_records_review_status", ["pending_review", "approved", "rejected", "committed"]);
+export const applicationEventsCountryEnum = pgEnum("application_events_country", ["germany", "italy"]);
+export const applicationEventsEventTypeEnum = pgEnum("application_events_event_type", [
+    "programme_saved",
+    "programme_archived",
+    "programme_priority_set",
+    "programme_priority_cleared",
+    "decision_notes_updated",
+    "consultation_completed",
+    "document_uploaded",
+    "document_verified",
+    "deadline_confirmed",
+    "communication_drafted",
+    "communication_approved",
+    "communication_sent",
+    "communication_reply_received",
+    "follow_up_planned",
+    "follow_up_completed",
+    "application_submitted",
+    "admission_offer_received",
+    "application_rejected",
+  ]);
 
 /**
  * Core user table backing auth flow.
  * Extend this file with additional tables as your product grows.
  * Columns use camelCase to match both database fields and generated types.
  */
-export const users = mysqlTable("users", {
+export const users = pgTable("users", {
   /**
    * Surrogate primary key. Auto-incremented numeric value managed by the database.
    * Use this for relations between tables.
    */
-  id: int("id").autoincrement().primaryKey(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   /** Stable local identity token generated at registration. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
@@ -21,10 +55,10 @@ export const users = mysqlTable("users", {
   /** Google OIDC subject id, when the user has linked or signed in with Google. */
   googleId: varchar("google_id", { length: 64 }),
   /** Bumped to invalidate every issued session server-side (logout everywhere, password change). */
-  tokenVersion: int("token_version").default(0).notNull(),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  tokenVersion: integer("token_version").default(0).notNull(),
+  role: usersRoleEnum("role").default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
@@ -32,8 +66,8 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /** Public event and product-access requests. Email is the idempotency key. */
-export const waitlistEntries = mysqlTable("waitlist_entries", {
-  id: int("id").autoincrement().primaryKey(),
+export const waitlistEntries = pgTable("waitlist_entries", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   name: varchar("name", { length: 120 }).notNull(),
   email: varchar("email", { length: 320 }).notNull().unique(),
   destination: varchar("organization", { length: 200 }).notNull(),
@@ -44,22 +78,22 @@ export const waitlistEntries = mysqlTable("waitlist_entries", {
 });
 
 /** A signed-in user's lightweight workspace baseline from the onboarding workflow. */
-export const workspaceProfiles = mysqlTable("workspace_profiles", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull().unique(),
+export const workspaceProfiles = pgTable("workspace_profiles", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull().unique(),
   organization: varchar("organization", { length: 200 }).notNull(),
   teamSize: varchar("team_size", { length: 32 }).notNull(),
   activeRegions: varchar("active_regions", { length: 255 }).notNull(),
   applicantVolume: varchar("applicant_volume", { length: 32 }).notNull(),
   onboardingComplete: boolean("onboarding_complete").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 /** Student-owned personal baseline used by the localized onboarding journey. */
-export const studentProfiles = mysqlTable("student_profiles", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull().unique(),
+export const studentProfiles = pgTable("student_profiles", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull().unique(),
   preferredName: varchar("preferred_name", { length: 120 }),
   contactEmail: varchar("contact_email", { length: 320 }),
   phoneNumber: varchar("phone_number", { length: 80 }),
@@ -70,30 +104,30 @@ export const studentProfiles = mysqlTable("student_profiles", {
   academicAverage: varchar("academic_average", { length: 80 }),
   gradeScale: varchar("grade_scale", { length: 120 }),
   academicSummary: text("academic_summary"),
-  lastViewedComparisonUniversityId: int("last_viewed_comparison_university_id"),
+  lastViewedComparisonUniversityId: integer("last_viewed_comparison_university_id"),
   /** Student's own Gemini API key, sealed under their per-user DEK (see userKeys). Never returned to any client after save. */
   geminiApiKeySealed: text("gemini_api_key_sealed"),
   onboardingComplete: boolean("onboarding_complete").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 /** A transparent three-use allowance for student-initiated recommendation refreshes in one declared application cycle. Regular browsing is never limited. */
-export const studentConsultationCycles = mysqlTable("student_consultation_cycles", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const studentConsultationCycles = pgTable("student_consultation_cycles", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   cycleKey: varchar("cycle_key", { length: 32 }).notNull(),
-  includedUses: int("included_uses").default(3).notNull(),
-  usedCount: int("used_count").default(0).notNull(),
+  includedUses: integer("included_uses").default(3).notNull(),
+  usedCount: integer("used_count").default(0).notNull(),
   lastConsultedAt: timestamp("last_consulted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [uniqueIndex("student_consultation_cycle_unique").on(table.userId, table.cycleKey), index("student_consultation_cycle_student_idx").on(table.userId, table.updatedAt)]);
 
 /** Student-controlled context for research matching. This informs fit signals only; it never stores an eligibility or admissions outcome. */
-export const studentFitProfiles = mysqlTable("student_fit_profiles", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull().unique(),
+export const studentFitProfiles = pgTable("student_fit_profiles", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull().unique(),
   studyDirection: varchar("study_direction", { length: 240 }).notNull(),
   studyLevel: varchar("study_level", { length: 80 }),
   academicAverage: varchar("academic_average", { length: 80 }),
@@ -107,13 +141,13 @@ export const studentFitProfiles = mysqlTable("student_fit_profiles", {
   priorities: text("priorities"),
   matchingConsentAt: timestamp("matching_consent_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 /** A saved university and its personal application status. */
-export const savedUniversities = mysqlTable("saved_universities", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const savedUniversities = pgTable("saved_universities", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   university: varchar("university", { length: 200 }).notNull(),
   location: varchar("location", { length: 200 }).notNull(),
   program: varchar("program", { length: 200 }).notNull(),
@@ -132,35 +166,35 @@ export const savedUniversities = mysqlTable("saved_universities", {
 });
 
 /** Student-confirmed public university contacts used only inside that student's approval-first relationship workspace. */
-export const universityContacts = mysqlTable("university_contacts", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  universityId: int("university_id").notNull(),
+export const universityContacts = pgTable("university_contacts", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  universityId: integer("university_id").notNull(),
   contactName: varchar("contact_name", { length: 160 }),
   contactRole: varchar("contact_role", { length: 160 }),
   email: varchar("email", { length: 320 }).notNull(),
   phone: varchar("phone", { length: 80 }),
   portalUrl: varchar("portal_url", { length: 700 }),
-  relationshipStage: mysqlEnum("relationship_stage", ["cold", "warm", "active", "responded", "paused"]).default("cold").notNull(),
-  contactPreference: mysqlEnum("contact_preference", ["email", "portal", "do_not_contact"]).default("email").notNull(),
+  relationshipStage: universityContactsRelationshipStageEnum("relationship_stage").default("cold").notNull(),
+  contactPreference: universityContactsContactPreferenceEnum("contact_preference").default("email").notNull(),
   studentConfirmedAt: timestamp("student_confirmed_at").defaultNow().notNull(),
   lastContactAt: timestamp("last_contact_at"),
   nextFollowUpAt: timestamp("next_follow_up_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [uniqueIndex("university_contact_unique").on(table.userId, table.universityId, table.email), index("university_contact_student_idx").on(table.userId, table.relationshipStage)]);
 
 /** A private local record of proposed, approved, delivered, and received university communications. */
-export const universityCommunications = mysqlTable("university_communications", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  universityId: int("university_id").notNull(),
-  contactId: int("contact_id"),
-  direction: mysqlEnum("direction", ["outbound", "inbound"]).notNull(),
-  status: mysqlEnum("status", ["draft", "ready_for_review", "student_approved", "provider_send_requested", "sent", "send_failed", "received", "needs_review", "archived"]).default("draft").notNull(),
+export const universityCommunications = pgTable("university_communications", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  universityId: integer("university_id").notNull(),
+  contactId: integer("contact_id"),
+  direction: universityCommunicationsDirectionEnum("direction").notNull(),
+  status: universityCommunicationsStatusEnum("status").default("draft").notNull(),
   subject: varchar("subject", { length: 998 }).notNull(),
   body: text("body").notNull(),
-  category: mysqlEnum("category", ["general", "document_request", "interview", "decision", "next_step", "needs_review"]).default("general").notNull(),
+  category: universityCommunicationsCategoryEnum("category").default("general").notNull(),
   aiNextStep: text("ai_next_step"),
   aiReviewNote: text("ai_review_note"),
   providerMessageId: varchar("provider_message_id", { length: 255 }),
@@ -169,28 +203,28 @@ export const universityCommunications = mysqlTable("university_communications", 
   sentAt: timestamp("sent_at"),
   receivedAt: timestamp("received_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [index("university_communication_student_idx").on(table.userId, table.createdAt), index("university_communication_contact_idx").on(table.contactId, table.status), uniqueIndex("university_communication_provider_id_unique").on(table.userId, table.providerMessageId)]);
 
 /** Student-created follow-up plans; due plans create review cues, never autonomous outbound email. */
-export const universityFollowUpPlans = mysqlTable("university_follow_up_plans", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  universityId: int("university_id").notNull(),
-  contactId: int("contact_id"),
+export const universityFollowUpPlans = pgTable("university_follow_up_plans", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  universityId: integer("university_id").notNull(),
+  contactId: integer("contact_id"),
   dueAt: timestamp("due_at").notNull(),
   reason: varchar("reason", { length: 240 }).notNull(),
-  status: mysqlEnum("status", ["planned", "draft_ready", "completed", "cancelled"]).default("planned").notNull(),
+  status: universityFollowUpPlansStatusEnum("status").default("planned").notNull(),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [index("university_follow_up_student_idx").on(table.userId, table.status, table.dueAt), index("university_follow_up_contact_idx").on(table.contactId)]);
 
 /** Durable in-app cues created for due follow-up plans; a cue never sends university email. */
-export const universityFollowUpNotifications = mysqlTable("university_follow_up_notifications", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  followUpPlanId: int("follow_up_plan_id").notNull(),
+export const universityFollowUpNotifications = pgTable("university_follow_up_notifications", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  followUpPlanId: integer("follow_up_plan_id").notNull(),
   alertKey: varchar("alert_key", { length: 180 }).notNull(),
   title: varchar("title", { length: 240 }).notNull(),
   body: text("body").notNull(),
@@ -200,10 +234,10 @@ export const universityFollowUpNotifications = mysqlTable("university_follow_up_
 }, (table) => [uniqueIndex("university_follow_up_notification_key_unique").on(table.alertKey), index("university_follow_up_notification_student_idx").on(table.userId, table.read)]);
 
 /** Gmail-only connection metadata; refresh credentials remain server-side and are never returned to a client. */
-export const studentInboxConnections = mysqlTable("student_inbox_connections", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull().unique(),
-  provider: mysqlEnum("provider", ["gmail"]).default("gmail").notNull(),
+export const studentInboxConnections = pgTable("student_inbox_connections", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull().unique(),
+  provider: studentInboxConnectionsProviderEnum("provider").default("gmail").notNull(),
   emailAddress: varchar("email_address", { length: 320 }).notNull(),
   encryptedRefreshToken: text("encrypted_refresh_token").notNull(),
   gmailHistoryId: varchar("gmail_history_id", { length: 120 }),
@@ -212,23 +246,23 @@ export const studentInboxConnections = mysqlTable("student_inbox_connections", {
   lastSyncedAt: timestamp("last_synced_at"),
   disconnectedAt: timestamp("disconnected_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 /** Append-only student-visible audit evidence for approval, send, sync, and follow-up lifecycle changes. */
-export const universityCommunicationAuditEvents = mysqlTable("university_communication_audit_events", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  communicationId: int("communication_id"),
-  followUpPlanId: int("follow_up_plan_id"),
-  eventType: mysqlEnum("event_type", ["draft_created", "draft_updated", "student_approved", "provider_send_requested", "sent", "send_failed", "reply_imported", "reply_categorized", "follow_up_planned", "follow_up_completed", "inbox_connected", "inbox_disconnected"]).notNull(),
+export const universityCommunicationAuditEvents = pgTable("university_communication_audit_events", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  communicationId: integer("communication_id"),
+  followUpPlanId: integer("follow_up_plan_id"),
+  eventType: universityCommunicationAuditEventsEventTypeEnum("event_type").notNull(),
   eventJson: text("event_json"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [index("university_communication_audit_student_idx").on(table.userId, table.createdAt), index("university_communication_audit_message_idx").on(table.communicationId, table.createdAt)]);
 
 /** Reviewed public German programme discovery records imported from source-linked directory evidence. */
-export const germanyProgrammeIndex = mysqlTable("germany_programme_index", {
-  id: int("id").autoincrement().primaryKey(),
+export const germanyProgrammeIndex = pgTable("germany_programme_index", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   programmeId: varchar("programme_id", { length: 80 }).notNull().unique(),
   officialName: varchar("official_name", { length: 280 }).notNull(),
   city: varchar("city", { length: 180 }).notNull(),
@@ -248,16 +282,16 @@ export const germanyProgrammeIndex = mysqlTable("germany_programme_index", {
   syrianBaccalaureateAnabinCondition: text("syrian_baccalaureate_anabin_condition"),
   lastVerified: varchar("last_verified", { length: 32 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [index("germany_programme_category_idx").on(table.broadSubjectCategories), index("germany_programme_region_idx").on(table.region), index("germany_programme_language_idx").on(table.programmeLanguage)]);
 
 /** Student-owned programme bookmarks; source evidence remains canonical in germanyProgrammeIndex. */
-export const savedGermanyProgrammes = mysqlTable("saved_germany_programmes", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const savedGermanyProgrammes = pgTable("saved_germany_programmes", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   programmeId: varchar("programme_id", { length: 80 }).notNull(),
   isPinned: boolean("is_pinned").default(false).notNull(),
-  priorityRank: int("priority_rank"),
+  priorityRank: integer("priority_rank"),
   priorityUpdatedAt: timestamp("priority_updated_at"),
   archivedAt: timestamp("archived_at"),
   decisionNotes: text("decision_notes"),
@@ -273,8 +307,8 @@ export const savedGermanyProgrammes = mysqlTable("saved_germany_programmes", {
  * "not collected, verify with the institution" signal rather than being
  * forced into Germany's feeRiskCategory shape.
  */
-export const italyProgrammeIndex = mysqlTable("italy_programme_index", {
-  id: int("id").autoincrement().primaryKey(),
+export const italyProgrammeIndex = pgTable("italy_programme_index", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   programmeId: varchar("programme_id", { length: 80 }).notNull().unique(),
   institutionName: varchar("institution_name", { length: 320 }).notNull(),
   city: varchar("city", { length: 180 }).notNull(),
@@ -303,16 +337,16 @@ export const italyProgrammeIndex = mysqlTable("italy_programme_index", {
   internationalStudentNote: text("international_student_note"),
   lastVerifiedUtc: varchar("last_verified_utc", { length: 40 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [index("italy_programme_region_idx").on(table.region), index("italy_programme_language_idx").on(table.programmeLanguage), index("italy_programme_health_idx").on(table.healthCategory), index("italy_programme_tech_idx").on(table.technologyEngineeringCategory)]);
 
 /** Student-owned programme bookmarks for Italy; source evidence remains canonical in italyProgrammeIndex. */
-export const savedItalyProgrammes = mysqlTable("saved_italy_programmes", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const savedItalyProgrammes = pgTable("saved_italy_programmes", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   programmeId: varchar("programme_id", { length: 80 }).notNull(),
   isPinned: boolean("is_pinned").default(false).notNull(),
-  priorityRank: int("priority_rank"),
+  priorityRank: integer("priority_rank"),
   priorityUpdatedAt: timestamp("priority_updated_at"),
   archivedAt: timestamp("archived_at"),
   decisionNotes: text("decision_notes"),
@@ -320,9 +354,9 @@ export const savedItalyProgrammes = mysqlTable("saved_italy_programmes", {
 }, (table) => [uniqueIndex("saved_italy_programme_unique").on(table.userId, table.programmeId), index("saved_italy_programme_student_idx").on(table.userId)]);
 
 /** Student-owned, locale-specific AI summaries of supplied public programme index data. */
-export const programmeResearchBriefings = mysqlTable("programme_research_briefings", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const programmeResearchBriefings = pgTable("programme_research_briefings", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   programmeId: varchar("programme_id", { length: 80 }).notNull(),
   locale: varchar("locale", { length: 8 }).notNull(),
   sourceUrl: varchar("source_url", { length: 700 }).notNull(),
@@ -332,9 +366,9 @@ export const programmeResearchBriefings = mysqlTable("programme_research_briefin
 }, (table) => [uniqueIndex("programme_research_briefing_unique").on(table.userId, table.programmeId, table.locale), index("programme_research_briefing_student_idx").on(table.userId, table.generatedAt)]);
 
 /** A student-reviewed programme deadline handoff; canonical evidence URL is copied from the shared index. */
-export const germanyProgrammeDeadlineHandoffs = mysqlTable("germany_programme_deadline_handoffs", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const germanyProgrammeDeadlineHandoffs = pgTable("germany_programme_deadline_handoffs", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   programmeId: varchar("programme_id", { length: 80 }).notNull(),
   deadlineAt: timestamp("deadline_at").notNull(),
   officialEvidenceUrl: varchar("official_evidence_url", { length: 700 }).notNull(),
@@ -342,8 +376,8 @@ export const germanyProgrammeDeadlineHandoffs = mysqlTable("germany_programme_de
 }, (table) => [uniqueIndex("germany_programme_deadline_unique").on(table.userId, table.programmeId), index("germany_programme_deadline_student_idx").on(table.userId, table.deadlineAt)]);
 
 /** Cached normalized official programme pages shared across students to avoid redundant fetches and AI calls. */
-export const universitySourceCaches = mysqlTable("university_source_caches", {
-  id: int("id").autoincrement().primaryKey(),
+export const universitySourceCaches = pgTable("university_source_caches", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   sourceUrl: varchar("source_url", { length: 600 }).notNull().unique(),
   sourceLabel: varchar("source_label", { length: 240 }).notNull(),
   contentHash: varchar("content_hash", { length: 128 }).notNull(),
@@ -354,35 +388,35 @@ export const universitySourceCaches = mysqlTable("university_source_caches", {
 });
 
 /** An opt-in official admissions-page watch tied to one student-owned saved university. */
-export const universityRequirementWatches = mysqlTable("university_requirement_watches", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  universityId: int("university_id").notNull(),
+export const universityRequirementWatches = pgTable("university_requirement_watches", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  universityId: integer("university_id").notNull(),
   sourceUrl: varchar("source_url", { length: 600 }).notNull(),
   sourceLabel: varchar("source_label", { length: 240 }).notNull(),
   enabled: boolean("enabled").default(true).notNull(),
   lastKnownHash: varchar("last_known_hash", { length: 128 }),
   lastCheckedAt: timestamp("last_checked_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [uniqueIndex("university_requirement_watch_unique").on(table.userId, table.universityId), index("university_requirement_watch_student_idx").on(table.userId, table.enabled)]);
 
 /** One student-owned scheduler preference for low-cost official-page checks. */
-export const universityWatchPreferences = mysqlTable("university_watch_preferences", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull().unique(),
+export const universityWatchPreferences = pgTable("university_watch_preferences", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull().unique(),
   enabled: boolean("enabled").default(true).notNull(),
-  preferredHourUtc: int("preferred_hour_utc").default(10).notNull(),
+  preferredHourUtc: integer("preferred_hour_utc").default(10).notNull(),
   scheduleCronTaskUid: varchar("schedule_cron_task_uid", { length: 65 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [index("university_watch_preferences_schedule_idx").on(table.scheduleCronTaskUid)]);
 
 /** Human-review alerts are generated only after an official page cache hash changes. */
-export const universityRequirementAlerts = mysqlTable("university_requirement_alerts", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  universityId: int("university_id").notNull(),
+export const universityRequirementAlerts = pgTable("university_requirement_alerts", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  universityId: integer("university_id").notNull(),
   changeKey: varchar("change_key", { length: 180 }).notNull(),
   sourceUrl: varchar("source_url", { length: 600 }).notNull(),
   title: varchar("title", { length: 240 }).notNull(),
@@ -392,10 +426,10 @@ export const universityRequirementAlerts = mysqlTable("university_requirement_al
 }, (table) => [uniqueIndex("university_requirement_alert_key_unique").on(table.changeKey), index("university_requirement_alert_student_idx").on(table.userId, table.read)]);
 
 /** Small application steps kept visible beneath a saved university. */
-export const applicationMilestones = mysqlTable("application_milestones", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  universityId: int("university_id").notNull(),
+export const applicationMilestones = pgTable("application_milestones", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  universityId: integer("university_id").notNull(),
   title: varchar("title", { length: 200 }).notNull(),
   dueLabel: varchar("due_label", { length: 100 }),
   completed: boolean("completed").default(false).notNull(),
@@ -403,9 +437,9 @@ export const applicationMilestones = mysqlTable("application_milestones", {
 });
 
 /** Personalized tasks that can be dismissed after a student records progress. */
-export const personalReminders = mysqlTable("personal_reminders", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const personalReminders = pgTable("personal_reminders", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   title: varchar("title", { length: 200 }).notNull(),
   body: text("body"),
   dueLabel: varchar("due_label", { length: 100 }),
@@ -415,38 +449,38 @@ export const personalReminders = mysqlTable("personal_reminders", {
 });
 
 /** One student-owned configuration controlling durable in-app deadline nudges. */
-export const reminderPreferences = mysqlTable("reminder_preferences", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull().unique(),
+export const reminderPreferences = pgTable("reminder_preferences", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull().unique(),
   enabled: boolean("enabled").default(true).notNull(),
   remindSevenDays: boolean("remind_seven_days").default(true).notNull(),
   remindThreeDays: boolean("remind_three_days").default(true).notNull(),
   remindOneDay: boolean("remind_one_day").default(true).notNull(),
-  preferredHourUtc: int("preferred_hour_utc").default(8).notNull(),
+  preferredHourUtc: integer("preferred_hour_utc").default(8).notNull(),
   scheduleCronTaskUid: varchar("schedule_cron_task_uid", { length: 65 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [index("reminder_preferences_schedule_cron_idx").on(table.scheduleCronTaskUid)]);
 
 /** Durable in-app alerts generated by the deadline scheduler; alertKey makes retries safe. */
-export const deadlineNotifications = mysqlTable("deadline_notifications", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
-  universityId: int("university_id"),
+export const deadlineNotifications = pgTable("deadline_notifications", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  universityId: integer("university_id"),
   alertKey: varchar("alert_key", { length: 180 }).notNull(),
   title: varchar("title", { length: 220 }).notNull(),
   body: text("body"),
   locale: varchar("locale", { length: 8 }).default("en").notNull(),
   deadlineAt: timestamp("deadline_at"),
-  daysBefore: int("days_before"),
+  daysBefore: integer("days_before"),
   read: boolean("read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [uniqueIndex("deadline_notifications_alert_key_unique").on(table.alertKey), index("deadline_notifications_student_idx").on(table.userId, table.read)]);
 
 /** Tokenized read-only family sharing; no family member can edit the student's journey. */
-export const familyInvites = mysqlTable("family_invites", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const familyInvites = pgTable("family_invites", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   email: varchar("email", { length: 320 }).notNull(),
   relationship: varchar("relationship", { length: 80 }).notNull(),
   token: varchar("token", { length: 80 }).notNull().unique(),
@@ -454,9 +488,9 @@ export const familyInvites = mysqlTable("family_invites", {
 });
 
 /** Private student document metadata. Actual transcript bytes live in storage, never in the database. */
-export const studentDocuments = mysqlTable("student_documents", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const studentDocuments = pgTable("student_documents", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   documentType: varchar("document_type", { length: 80 }).default("Transcript").notNull(),
   fileName: varchar("file_name", { length: 255 }).notNull(),
   mimeType: varchar("mime_type", { length: 120 }).notNull(),
@@ -469,49 +503,49 @@ export const studentDocuments = mysqlTable("student_documents", {
 });
 
 /** Admin-controlled source file intake. The original CV or spreadsheet stays in private storage; the database holds only audit metadata and extracted review state. */
-export const adminIntakeUploads = mysqlTable("admin_intake_uploads", {
-  id: int("id").autoincrement().primaryKey(),
-  uploadedByUserId: int("uploaded_by_user_id").notNull(),
-  sourceKind: mysqlEnum("source_kind", ["cv", "spreadsheet"]).notNull(),
+export const adminIntakeUploads = pgTable("admin_intake_uploads", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  uploadedByUserId: integer("uploaded_by_user_id").notNull(),
+  sourceKind: adminIntakeUploadsSourceKindEnum("source_kind").notNull(),
   fileName: varchar("file_name", { length: 255 }).notNull(),
   mimeType: varchar("mime_type", { length: 120 }).notNull(),
-  byteSize: int("byte_size").notNull(),
+  byteSize: integer("byte_size").notNull(),
   contentHash: varchar("content_hash", { length: 64 }).notNull(),
   storageKey: varchar("storage_key", { length: 512 }).notNull(),
   fileUrl: varchar("file_url", { length: 600 }).notNull(),
-  status: mysqlEnum("status", ["uploaded", "extracting", "ready_for_review", "failed", "rejected", "committed"]).default("uploaded").notNull(),
+  status: adminIntakeUploadsStatusEnum("status").default("uploaded").notNull(),
   extractedText: text("extracted_text"),
   extractionNote: text("extraction_note"),
-  sourceRowCount: int("source_row_count").default(0).notNull(),
-  aiInvocationCount: int("ai_invocation_count").default(0).notNull(),
+  sourceRowCount: integer("source_row_count").default(0).notNull(),
+  aiInvocationCount: integer("ai_invocation_count").default(0).notNull(),
   failureReason: text("failure_reason"),
   committedAt: timestamp("committed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [uniqueIndex("admin_intake_upload_content_hash_unique").on(table.contentHash), index("admin_intake_upload_status_idx").on(table.status, table.createdAt)]);
 
 /** One AI-derived, reviewable intake row. These drafts never update a student account automatically. */
-export const adminIntakeRecords = mysqlTable("admin_intake_records", {
-  id: int("id").autoincrement().primaryKey(),
-  uploadId: int("upload_id").notNull(),
-  sourceRowNumber: int("source_row_number").notNull(),
+export const adminIntakeRecords = pgTable("admin_intake_records", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  uploadId: integer("upload_id").notNull(),
+  sourceRowNumber: integer("source_row_number").notNull(),
   sourceDigest: varchar("source_digest", { length: 64 }).notNull(),
   proposedProfileJson: text("proposed_profile_json").notNull(),
   extractionConfidence: varchar("extraction_confidence", { length: 16 }).notNull(),
-  reviewStatus: mysqlEnum("review_status", ["pending_review", "approved", "rejected", "committed"]).default("pending_review").notNull(),
-  reviewerUserId: int("reviewer_user_id"),
+  reviewStatus: adminIntakeRecordsReviewStatusEnum("review_status").default("pending_review").notNull(),
+  reviewerUserId: integer("reviewer_user_id"),
   reviewNote: text("review_note"),
-  prospectiveStudentId: int("prospective_student_id"),
+  prospectiveStudentId: integer("prospective_student_id"),
   reviewedAt: timestamp("reviewed_at"),
   committedAt: timestamp("committed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [uniqueIndex("admin_intake_record_source_unique").on(table.uploadId, table.sourceRowNumber), uniqueIndex("admin_intake_record_digest_unique").on(table.sourceDigest), index("admin_intake_record_review_idx").on(table.reviewStatus, table.createdAt)]);
 
 /** A vetted prospective-student record created only when an admin explicitly commits a reviewed intake draft. It is not an authenticated student account. */
-export const prospectiveStudents = mysqlTable("prospective_students", {
-  id: int("id").autoincrement().primaryKey(),
-  sourceRecordId: int("source_record_id").notNull().unique(),
+export const prospectiveStudents = pgTable("prospective_students", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  sourceRecordId: integer("source_record_id").notNull().unique(),
   preferredName: varchar("preferred_name", { length: 160 }),
   contactEmail: varchar("contact_email", { length: 320 }),
   phoneNumber: varchar("phone_number", { length: 80 }),
@@ -522,9 +556,9 @@ export const prospectiveStudents = mysqlTable("prospective_students", {
   gradeScale: varchar("grade_scale", { length: 120 }),
   qualifications: text("qualifications"),
   sourceSummary: text("source_summary"),
-  createdByUserId: int("created_by_user_id").notNull(),
+  createdByUserId: integer("created_by_user_id").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [index("prospective_student_email_idx").on(table.contactEmail), index("prospective_student_created_by_idx").on(table.createdByUserId, table.createdAt)]);
 
 /**
@@ -550,32 +584,13 @@ export const prospectiveStudents = mysqlTable("prospective_students", {
  * broader relationship (e.g. a saved-but-unmatched university in
  * savedUniversities) rather than a specific catalogued programme.
  */
-export const applicationEvents = mysqlTable("application_events", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+export const applicationEvents = pgTable("application_events", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
   programmeId: varchar("programme_id", { length: 80 }),
-  country: mysqlEnum("country", ["germany", "italy"]),
-  universityId: int("university_id"),
-  eventType: mysqlEnum("event_type", [
-    "programme_saved",
-    "programme_archived",
-    "programme_priority_set",
-    "programme_priority_cleared",
-    "decision_notes_updated",
-    "consultation_completed",
-    "document_uploaded",
-    "document_verified",
-    "deadline_confirmed",
-    "communication_drafted",
-    "communication_approved",
-    "communication_sent",
-    "communication_reply_received",
-    "follow_up_planned",
-    "follow_up_completed",
-    "application_submitted",
-    "admission_offer_received",
-    "application_rejected",
-  ]).notNull(),
+  country: applicationEventsCountryEnum("country"),
+  universityId: integer("university_id"),
+  eventType: applicationEventsEventTypeEnum("event_type").notNull(),
   // Freeform structured detail for this specific event (e.g. which document
   // type, which priority rank, the communication id). Kept as JSON text
   // rather than a wide sparse column set, matching the existing
@@ -595,9 +610,9 @@ export const applicationEvents = mysqlTable("application_events", {
  * renders all such ciphertext permanently undecryptable � including copies
  * already sitting in backups � without touching the backup files themselves.
  */
-export const userKeys = mysqlTable("user_keys", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull().unique(),
+export const userKeys = pgTable("user_keys", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull().unique(),
   /** base64(nonce || ciphertext || tag) of the user's DEK, wrapped by MASTER_KEY. */
   wrappedDek: text("wrapped_dek").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

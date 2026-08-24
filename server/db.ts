@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, isNull, isNotNull, like, lte, or, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { applicationEvents, applicationMilestones, deadlineNotifications, familyInvites, germanyProgrammeDeadlineHandoffs, germanyProgrammeIndex, italyProgrammeIndex, InsertUser, personalReminders, programmeResearchBriefings, reminderPreferences, savedGermanyProgrammes, savedItalyProgrammes, savedUniversities, studentConsultationCycles, studentDocuments, studentFitProfiles, studentProfiles, studentInboxConnections, universityCommunicationAuditEvents, universityCommunications, universityContacts, universityFollowUpNotifications, universityFollowUpPlans, userKeys, users, waitlistEntries, workspaceProfiles } from "../drizzle/schema";
 import { adminIntakeRecords, adminIntakeUploads, prospectiveStudents } from "../drizzle/schema";
 import { storagePut } from "./storage";
@@ -13,7 +14,7 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _db = drizzle(postgres(process.env.DATABASE_URL, { prepare: false }));
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;

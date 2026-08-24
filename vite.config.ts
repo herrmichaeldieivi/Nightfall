@@ -32,6 +32,7 @@ const plugins = [
       globPatterns: ["**/*.{js,css,html,svg,woff2}"],
       navigateFallbackDenylist: [/^\/api\//],
       runtimeCaching: [],
+      maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
     },
   }),
 ];

@@ -1,1 +1,0 @@
-ALTER TABLE `student_profiles` ADD `last_viewed_comparison_university_id` int;

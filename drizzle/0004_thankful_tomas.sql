@@ -1,1 +1,0 @@
-ALTER TABLE `student_profiles` ADD `preferred_name` varchar(120);

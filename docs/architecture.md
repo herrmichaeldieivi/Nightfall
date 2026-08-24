@@ -118,6 +118,12 @@ DEADLINE | APPLICATION_ACTION`. A unit test pins round-trip behavior for all pai
 
 ## 6. Identity Model
 
+**Database platform: PostgreSQL (Supabase), ported in Phase 1.5.** Connection
+uses the transaction pooler (`prepare:false` drivers); `updatedAt` is maintained
+by trigger `nightfall_set_updated_at()` (migration `0001`), replacing MySQL's
+`ON UPDATE CURRENT_TIMESTAMP`. Upserts use `onConflictDoUpdate` with explicit
+per-table conflict targets matching the unique indexes below.
+
 - `programmes` table = first-class identity resolution layer
   (`id`, `source: germany|italy`, `sourceProgrammeId`, `institutionNameSnapshot`
   — display snapshot ONLY, never a university identity; a future `universities`

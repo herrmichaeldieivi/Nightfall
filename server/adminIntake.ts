@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
-import * as mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
+// Lazy-loaded: mammoth is only needed for DOCX intake; avoids a hard boot dependency.
+// Lazy-loaded: pdf-parse is only needed for PDF intake; avoids a hard boot dependency.
 import * as XLSX from "xlsx";
 
 export const ADMIN_INTAKE_MAX_BYTES = 8_000_000;
@@ -32,9 +32,17 @@ export async function extractCvText(input: { fileName: string; mimeType: string;
   const lowerName = input.fileName.toLowerCase();
   if (input.mimeType === "text/plain" || lowerName.endsWith(".txt")) return compactText(input.bytes.toString("utf8"));
   if (input.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || lowerName.endsWith(".docx")) {
+    // Dynamic import: DOCX intake is admin-only and rare, so mammoth is not
+    // required at boot. A clear error surfaces if the package is unavailable.
+    const mammoth = await import("mammoth").catch(() => null);
+    if (!mammoth) throw new Error("DOCX support is temporarily unavailable. Upload this CV as PDF or TXT.");
     const result = await mammoth.extractRawText({ buffer: input.bytes });
     return compactText(result.value);
   }
+  // Dynamic import: PDF intake is admin-only, so pdf-parse is not required
+  // at boot. A clear error surfaces if the package is unavailable.
+  const { PDFParse } = await import("pdf-parse").catch(() => ({ PDFParse: null }));
+  if (!PDFParse) throw new Error("PDF support is temporarily unavailable. Upload this CV as TXT.");
   const parser = new PDFParse({ data: input.bytes });
   try {
     const result = await parser.getText();

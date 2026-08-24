@@ -1,0 +1,187 @@
+- [x] Replace the Quiet Command Center visual system with Bauhaus-inspired geometric color, type, and composition rules.
+- [x] Recompose the dashboard around bold asymmetric blocks while preserving its priority, inbox, agent, and approval workflows.
+- [x] Verify the redesigned dashboard at desktop and mobile widths.
+- [x] Save the completed Bauhaus redesign as a new checkpoint.
+- [x] Replace the Bauhaus operating-poster treatment with a premium institutional spatial design system.
+- [x] Recompose the dashboard around application progress, documents, deadlines, and quiet agent infrastructure.
+- [x] Validate the institutional dashboard at desktop and mobile widths.
+- [x] Save the completed Institutional Spatialism redesign as a new checkpoint.
+- [x] Replace the display-heavy type scale with a neutral IBM Plex Sans hierarchy.
+- [x] Verify the revised typography across desktop and mobile.
+- [x] Save the IBM Plex Sans typography update as a new checkpoint.
+- [x] Replace Aster’s single-operator workspace with the Nightfall Operational Matrix visual system.
+- [x] Build the Nightfall landing page, team operations console, application pipeline, student profile, and university CRM views.
+- [x] Validate desktop and mobile operational flows.
+- [x] Save the completed Nightfall frontend as a new checkpoint.
+- [x] Remove cyan, green, amber, and red accents in favor of a strict graphite-and-off-white status system.
+- [x] Replace IBM Plex Sans and Mono with Geist and Geist Mono throughout the Nightfall interface.
+- [x] Validate the monochromatic hierarchy across desktop and mobile.
+- [x] Save the strict monochrome Geist revision as a new checkpoint.
+- [x] Introduce a more distinctive readable type system for Nightfall.
+- [x] Make the landing page and operations dashboard interactive with usable navigation, search, filters, record detail, and status workflows.
+- [x] Test the end-to-end client-side flows across desktop and mobile.
+- [x] Save the functional dashboard and landing-page revision as a new checkpoint.
+- [x] Define Nightfall’s event-ready brand voice, product narrative, and end-to-end journey map in an external brand file.
+- [x] Enable persistent user and waitlist support for functional sign-up, login, and access flows.
+- [x] Build a high-conviction landing page, waitlist, login, sign-up, onboarding, and authenticated dashboard.
+- [x] Validate the public-to-product journey on desktop and mobile.
+- [x] Save the showcase-ready Nightfall product as a new checkpoint.
+- [x] Replace institutional team language with a student- and family-first Nightfall narrative and consumer brand voice.
+- [x] Redesign the landing page and waitlist around personal application journeys, confidence, and early-access benefits.
+- [x] Add English and Arabic public pages with a language switcher and responsive right-to-left layouts.
+- [x] Validate the bilingual consumer funnel on desktop and mobile.
+- [x] Save the B2C-ready Night Journey revision as a new checkpoint.
+- [x] Add a personal student dashboard with saved universities, visual application milestones, and persistent progress data.
+- [x] Add a secure read-only family invitation and progress view for an invited parent or guardian.
+- [x] Add localized Arabic onboarding and personalized application reminders for students.
+- [x] Create and validate a reusable Nightfall consumer-product build skill using the skill-creator workflow.
+- [x] Validate student, family, reminder, and bilingual flows.
+- [x] Save the extended Nightfall student and family revision as a new checkpoint.
+- [x] Add searchable and filterable university discovery with a side-by-side saved-university comparison tool.
+- [x] Add interactive application deadline calendar and drag-and-drop transcript upload with persistent records.
+- [x] Polish Arabic dashboard and onboarding layouts with IBM Plex Sans Arabic, intentional RTL ordering, and smooth transitions.
+- [x] Validate discovery, comparison, calendar, upload, and Arabic RTL flows.
+- [x] Save the university discovery, calendar, transcript, and Arabic RTL extension as a new checkpoint.
+- [x] Add customizable in-app deadline reminder settings and interactive calendar alert controls.
+- [x] Add tuition, scholarship, and admission-eligibility criteria to saved-university comparisons.
+- [x] Add OCR-assisted transcript extraction to prefill student grade information after upload.
+- [x] Add polished, purposeful motion to the Night Journey public and student product experience.
+- [x] Update and validate the reusable Nightfall product-build skill with the notification, comparison, OCR, and motion workflow.
+- [x] Validate the expanded waitlist plan and student-product experience, then save the extension.
+- [x] Save the deadline-nudge callback, verify live scheduler activation after deployment, and confirm idempotent calendar alerts.
+- [x] Replace generic university planning copy with sourced tuition amounts, named scholarship options, and concrete programme eligibility details.
+- [x] Visually validate authenticated comparison, calendar-nudge, and transcript-OCR flows at desktop and mobile before saving the extension.
+- [x] Name and source every featured university scholarship option in the comparison catalogue.
+- [x] Reconcile the discovery-catalogue unit tests with the source-backed featured universities and rerun validation.
+- [x] Add a scholarship-specific official source link to every featured comparison entry.
+- [x] Replace remaining generic scholarship wording with named, source-backed funding programmes.
+- [x] Use the provided Motion.so integration to guide and implement the next cinematic Nightfall motion refinement.
+- [x] Complete available non-interactive validation and clearly document the signed-in browser verification boundary.
+- [x] Document the Motion.so zero-credit constraint in the reusable workflow and revalidate the native motion path against that constraint.
+- [x] Rerun type checks and desktop/mobile motion review after documenting the Motion.so fallback decision.
+- [x] Fix the login handoff so students can complete OAuth and return to the intended Nightfall journey.
+- [x] Redesign onboarding as a personal card sequence for name, study destination, and graduation year.
+- [x] Add a destination dropdown with an intentional “other” input and a tactile combination-style graduation-year selector.
+- [x] Remove or reframe low-value optional onboarding fields so every question earns its place.
+- [x] Implement a true per-digit graduation-year combination lock with visible carry behavior from 2019 to 2020.
+- [x] Add regression coverage for graduation-year increment, decrement, and boundary rollover behavior.
+- [x] Update and validate the reusable Nightfall skill with the personal card-onboarding and per-digit graduation-lock pattern.
+- [x] Keep beta capabilities open while making the future paid/automation boundaries explicit and non-enforcing.
+- [x] Add sourced university snapshots with campus imagery, concise summaries, and direct official-source links.
+- [x] Add an approval-first university requirements watch that records changes without making admissions claims or auto-submitting anything.
+- [x] Set up and validate a safe scheduled checking workflow for opted-in saved universities.
+- [x] Update and validate the reusable Nightfall workflow with beta-open access and requirements-watch patterns.
+- [x] Cache official-page snapshots, normalized source text, hashes, summaries, and check timestamps so recurring checks invoke AI only after a real source change.
+- [x] Add explicit user-facing beta boundaries that describe what is open now and what future automation will require, without enforcing a lock.
+- [x] Generate, cache, and reuse a concise initial official-page summary when a programme watch is first enabled.
+- [x] Surface the full beta-open scope, no-paywall status, and future approval-first automation boundaries in the student watch UI.
+- [x] Generate and persist the initial official-page summary immediately when a student enables a watch.
+- [x] Reuse the persisted cache summary in the student watch UI rather than falling back to static catalogue copy.
+- [x] Separate the product landing page (sign-in/sign-up first) from the Instagram-ready waitlist campaign destination.
+- [x] Redesign the public landing page with Motion.so-informed cinematic Night Journey direction.
+- [x] Replace the generic Instagram campaign form with the existing personal name, destination, and graduation-lock onboarding interaction while persisting a public waitlist interest.
+- [x] Add direct authenticated links for comparison, calendar, watch, and document tabs, then finish their mobile visual verification.
+- [x] Add accessible mobile swipe navigation between selected university comparison cards.
+- [x] Add a concise source-aware key-difference strip above each university comparison card.
+- [x] Persist a student’s last viewed comparison university across return visits.
+- [x] Audit and integrate the supplied Germany public discovery directory as a reviewed student research dataset with explicit evidence boundaries.
+- [x] Allow students to save specific Germany programmes directly to their personal journey.
+- [x] Add evidence-safe language and deadline-context alerts to university comparison cards.
+- [x] Add source-linked side-by-side comparison for multiple saved Germany programmes.
+- [x] Add pin, archive, and remove controls for saved Germany programmes in the personal journey.
+- [x] Add a review-first calendar handoff for programme deadlines with official-source verification boundaries.
+- [x] Redesign the public landing page using the supplied Lunar reference as compatible visual inspiration.
+- [x] Add edit and remove controls for student-confirmed programme deadlines in the personal calendar.
+- [x] Surface pinned Germany programmes prominently on the main student journey dashboard.
+- [x] Add private persistent decision notes to saved Germany programmes.
+- [x] Write a source-governed multi-country research expansion plan based on the Germany workflow.
+- [x] Refine the public landing page around an accessible operational lunar phase system rather than decorative moon imagery.
+- [x] Add edit and remove controls for student-confirmed Germany programme deadlines directly inside the Calendar tab’s saved-date list.
+- [x] Manually verified the personal-calendar deadline edit/remove controls in the live preview at desktop and mobile widths; no student date was changed or removed during QA.
+- [x] Ship a cached, source-grounded AI research briefing for saved programmes with explicit review and decision boundaries.
+- [x] Move Germany deadline edit/remove actions and official evidence links into each existing Calendar saved-date row.
+- [x] Manually revalidated the Calendar saved-date rows at desktop and mobile widths with a real student-confirmed programme date in the live preview.
+- [x] Redesign the university discovery list as a visually compelling, low-clutter editorial browse surface with progressive disclosure.
+- [x] Simplify crowded saved-programme and Calendar tool areas without removing source links or student-owned controls.
+- [x] Manually verified the refined discovery and student-tool hierarchy in English and Arabic RTL at desktop and mobile widths in the live preview.
+- [x] Manually verified the refined Calendar tool hierarchy in English and Arabic RTL at desktop and mobile widths after the simplification changes.
+- [x] Manually verified a real programme-date Calendar row’s inline edit/remove/source-link affordances at desktop and mobile widths; no destructive action was executed during QA.
+- [x] Add inspectable unit coverage for Germany programme Calendar row action visibility and deadline-month focus behavior.
+- [x] Define student-owned CRM records, university contacts, communication history, follow-up rules, relationship stages, and consent/approval boundaries.
+- [x] Design the staged email, inbound-response, scheduling, rate-limit, and audit architecture without enabling unapproved outbound messages.
+- [x] Build a student-facing university relationship workspace with communication history and follow-up planning.
+- [x] Add source-grounded AI email drafting and review-safe response categorization with explicit human approval.
+- [x] Add integration-ready scheduling, audit logging, rate limits, and automated tests for the follow-up agent.
+- [x] Implement the student-owned inbox model with mandatory click-to-approve outbound email and no autonomous send rules.
+- [x] Implement Gmail and Google Workspace as the sole inbox provider for the first university follow-up release.
+- [x] Add a student-facing Settings → Connected inbox surface for Gmail connection status, consent, and disconnect controls; never expose platform OAuth credentials to students.
+- [ ] Manually validate a real Google consent, confirmed university contact, AI draft, and explicitly approved test email through a student-owned Gmail inbox before calling the integration field-tested.
+- [x] Add a student-facing query and visible in-app surface for scheduled university follow-up notifications.
+- [ ] Validate the full scheduled follow-up delivery path from a due plan through the existing callback to a visible student notification.
+- [x] Define Nightfall consulting chat as a core, context-aware guidance feature with explicit source, review, and decision boundaries.
+- [x] Promote consulting chat to a prominent student-journey entry point rather than a secondary utility.
+- [x] Build consulting chat context from the student’s saved universities, programme research, deadlines, documents, and relationship workspace without making admissions decisions or automatic changes.
+- [x] Manually reviewed the bilingual consulting-chat experience and its guidance boundaries at desktop and mobile widths in the live preview.
+- [x] Add saved programme research briefings and source-grounded research context to the private consulting payload.
+- [x] Explicitly review consulting in Arabic RTL at desktop width and record the live-preview validation.
+- [x] Re-run full production validation for consulting when sandbox resources permit.
+- [x] Define a private student-fit profile, explicit consent boundary, and non-decision policy for academic, financial, language, qualification, nationality, sponsorship, and preference context.
+- [x] Build student-owned fit-profile capture for study direction, grades, budget, language comfort, qualifications, nationality, funding route, sponsor option, and priorities.
+- [x] Create reusable programme research, subject filtering, explainable matching, and comparison contracts over the Germany index that future country providers can implement.
+- [x] Integrate subject-relevant fit results into Consulting and university discovery without representing fit signals as eligibility or admissions outcomes.
+- [ ] Validate matching explanations, profile privacy boundaries, English/Arabic UX, and modular country-provider expansion contracts.
+- [x] Add a country-agnostic programme comparison contract and provider interface so future datasets can supply research and comparison without Germany-specific UI types.
+- [x] Refactor Germany programme research/comparison wiring to consume the modular comparison contract and verify the existing Germany index behavior remains intact.
+- [x] Refactor programme comparison rendering to use the provider-neutral comparable-programme shape throughout the comparison UI.
+- [x] Create a reusable programme research/comparison panel contract that country providers can implement, then adapt the Germany panel to it.
+- [x] Add regression coverage for the provider-neutral Germany comparison adapter and validate Germany comparison behavior after the full modular refactor.
+- [x] Refactor GermanyResearchPanel to consume a provider-neutral research/comparison panel contract as its primary input, retaining Germany only as an adapter implementation.
+- [x] Add an end-to-end reusable programme research panel abstraction that country providers can supply for records, comparable mapping, source URL, and labels.
+- [ ] Explicitly validate a live Germany two-programme comparison selection after the modular panel migration; shared comparison-rendering coverage is complete.
+- [x] Add a student-facing Gmail reply-sync action and surface imported reply category, next-step guidance, and review note in the relationship workspace.
+- [x] Implement real scheduled in-app follow-up delivery rather than only promoting due plans when the workspace loads.
+- [x] Re-run the production build after the final Gmail reply-sync and scheduler-delivery changes before checkpointing the follow-up-agent milestone.
+- [x] Reframe the public CTA and onboarding as a natural AI Consultant-led fit-discovery journey that captures student context before student-controlled matching and research.
+- [x] Redesign the public landing as a mobile-first cinematic trust journey with a warm top-header CTA, well-defined scroll sections, and a culminating “Ready to start your journey” conversion moment.
+- [x] Replace the form-like consultant onboarding with an intimate, interview-style sequence that earns and reviews name, email, study direction, budget, nationality, grades, high-school diploma origin, and phone number before explicit matching consent.
+- [x] Turn student-controlled programme recommendations into a visible post-consultation result with source-linked rationale and a deliberate priority-list selection experience.
+- [x] Define and enforce a transparent per-application-cycle consultation allowance, including remaining-use visibility and a non-deceptive experience when a student has no included consultations left.
+- [ ] Validate the new mobile-first journey in English and Arabic RTL, including scroll pacing, data-consent language, recommendation boundaries, and priority-list interactions.
+- [x] Move account creation behind a local-only Consultant interview so visitors can complete the private conversation before signing in or signing up to securely unlock and save their research set.
+- [x] Make the landing Consultant preview either genuinely interactive or explicitly illustrative, centralize repeatable trust guarantees, and ensure warm and final CTAs converge on the same pre-auth interview path.
+- [ ] Validate that no interview detail is persisted or sent to the server before account consent, and that English and Arabic account-gated handoffs remain clear on mobile.
+- [x] Refine the landing visual system: prevent Arabic hero text from colliding with the sphere, use a more distinctive mark and true orbit wrap, replace the static programme sample with a typed-and-erased study-field animation, emphasize product headlines, and make the ambient sound subtle rather than an exposed option.
+- [x] Remove the newly commented landing visual element and verify the surrounding hero composition remains intentional across mobile and desktop.
+- [x] Replace the abstract hero sphere with the approved copy-first sampled-Earth component: a layered SVG/CSS globe with ambiguous non-uniform dot clusters, seamless nearly imperceptible drift, restrained moonlight, two route paths, no fake-geography or generic AI-globe aesthetics, and an explicit z-index model.
+- [x] Provide deliberate English and Arabic Earth compositions, mobile density/scale behavior, reduced-motion stability, a tiny accessible opt-in ambient-sound icon, and no globe behind readable text at any breakpoint.
+- [x] Add component coverage and validate the sampled-Earth hero on desktop/mobile English and Arabic, plus the full regression suite and production build without changing the public funnel or CRM behavior.
+- [x] Correct the sampled-Earth hero so it visibly reads as planet Earth: recognizable dotted continental silhouettes, an unmistakable slow globe rotation, and restrained moonlight without competing with the headline.
+- [x] Replace the approximate hero land shapes with lightweight real cartographic land geometry, rendered as Nightfall’s restrained moon-silver dotted globe without changing the public funnel or mobile-first hierarchy.
+- [x] Diagnose and repair the reported public Consultant entry/interview handoff so students can reach their account-gated research results without sending interview details before consent.
+- [x] Prevent meaningless study-direction input from advancing the Consultant interview while preserving a clear, student-controlled “still exploring” path.
+- [x] Recast the Consultant as a typed conversational session with deterministic local input-quality gates instead of a visible form sequence, while keeping pre-unlock answers local to the browser.
+- [ ] Move email collection to the final account-unlock moment and require a time-limited code sent to that email as a rate-limit gate before the existing sign-in/sign-up flow can save and open the Consultant research set.
+- [x] Add an admin-only intake page for private CV and `.xlsx` uploads, with source audit records, duplicate protection, and explicit review before database writes.
+- [x] Extract approved CV and spreadsheet records into structured database-ready drafts through a cost-controlled AI pipeline, without silently overwriting student records.
+- [ ] Validate a signed-in administrator’s real CV and `.xlsx` upload, review, and explicit prospective-record commit using a non-sensitive test file.
+- [x] Export the implemented Nightfall dashboard and journey screens as a secure, static HTML designer handoff pack without backend configuration or live student data.
+- [x] Make the real-cartography hero Earth visibly and elegantly rotate while preserving its moonlit dotted material, copy-first hierarchy, and reduced-motion stability.
+- [x] Replace the rejected 3D Earth flip with a globe-preserving true orthographic cartographic surface turn that feels cinematic rather than distorted.
+- [x] Increase the corrected real-cartography Earth turn rate by 10% without reintroducing silhouette distortion or reduced-motion animation.
+- [x] Develop a bilingual Nightfall promotional playbook for early-list social creative, short-form video, event material, and trust-safe campaign measurement.
+- [x] Build a full student-to-student Instagram-only launch campaign that sells the emotional premise of studying abroad before introducing Nightfall as the trust-first way to begin.
+- [x] Integrate the founder’s international study-abroad ambassador experience and community-access mission into the Instagram campaign without making agency-style or admissions-outcome claims.
+- [x] Translate the founder’s firsthand €33,000 tuition-recommendation incident into a public-safe Nightfall origin story and Instagram founder film without naming organizations or making unreviewed allegations.
+- [x] Convert the Instagram campaign into a motion-graphics-only production system, including an animated founder-origin film with no live filming requirement.
+- [x] Translate the remaining landing hero and navigation microcopy into Arabic with intentional RTL treatment.
+- [x] Remove the hero layer that visually blurs the real-cartography globe and enlarge the supporting hero line.
+- [x] Replace the unused hero affordance with a clear action that carries visitors to the next journey step.
+- [x] Replace the binary English/Arabic control with an accessible language menu that supports Nightfall’s wider audience without falsely claiming unavailable localizations.
+- [x] Review the supplied discovery and university-follow-up dossier, reconcile it with Nightfall’s implemented contracts, and confirm the next bounded product slice before integrating new concepts.
+- [x] Add deterministic journey-stage, pulse-stat, primary-action, and unavailable-tool fallback contracts derived from real student records.
+- [x] Replace the signed-in default Discover surface and seven-tab strip with a personal Application Progress Home that shows current stage, live student-facing pulse, one next action, active path, and attention items.
+- [x] Build a one-time three-option, source-linked Decision Room and shortlist progression so broad discovery is optional rather than the recurring homepage.
+- [x] Contextualize comparison, calendar, documents, source watch, and Gmail reach tools behind relevant programme/application milestones while preserving clear deep-link fallbacks.
+- [ ] Validate the guided My Journey flow in English and Shami Arabic RTL on mobile and desktop, then checkpoint the redesign.
+- [x] Refine the free Consultant into Nightfall’s defining guided assessment: ask only path-changing questions, return a small explained starting set, and hand the student directly into their personal journey without premature tools.
+- [x] Remove the duplicate editable Student Fit Signals panel from the signed-in journey so the free Consultant remains the sole intentional assessment flow.

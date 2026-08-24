@@ -1,0 +1,100 @@
+/* Nightfall Operational Matrix: strict graphite monochrome, Space Grotesk hierarchy, dot-matrix evidence, and information geometry. */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --background: #0c0e0f;
+  --foreground: #f1f3ee;
+  --card: #131719;
+  --card-foreground: #f1f3ee;
+  --popover: #161b1d;
+  --popover-foreground: #f1f3ee;
+  --primary: #f1f3ee;
+  --primary-foreground: #0c0e0f;
+  --secondary: #1a1d1e;
+  --secondary-foreground: #d9dcda;
+  --muted: #14191a;
+  --muted-foreground: #9aa5a0;
+  --accent: #202425;
+  --accent-foreground: #eef0ed;
+  --destructive: #d7dad7;
+  --destructive-foreground: #0c0e0f;
+  --border: rgba(203, 219, 212, .12);
+  --input: #181e20;
+  --ring: #80d7d2;
+  --radius: 4px;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { background: #0c0e0f; }
+  body { @apply bg-background text-foreground; min-width: 320px; font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif; }
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), a[href] { @apply cursor-pointer; }
+  ::selection { background: rgba(128,215,210,.22); color: #f1f3ee; }
+}
+
+@layer components {
+  .nf-shell { filter: grayscale(1); background: radial-gradient(circle at 76% 2%, rgba(255,255,255,.04), transparent 24rem), #0c0e0f; }
+  .nf-dot-field { background-image: radial-gradient(circle, rgba(241,243,238,.18) 1px, transparent 1.15px); background-size: 12px 12px; mask-image: radial-gradient(ellipse at center, black 12%, transparent 72%); }
+  .nf-grid { background-image: linear-gradient(rgba(154,169,163,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(154,169,163,.055) 1px, transparent 1px); background-size: 28px 28px; }
+  .nf-panel { position: relative; overflow: hidden; border: 1px solid rgba(203,219,212,.13); background: rgba(19,23,25,.92); }
+  .nf-panel-subtle { border: 1px solid rgba(203,219,212,.1); background: rgba(255,255,255,.018); }
+  .nf-mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .nf-label { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10px; font-weight: 500; letter-spacing: .08em; line-height: 1.2; text-transform: uppercase; }
+  .nf-button { transition: color 150ms cubic-bezier(.23,1,.32,1), background-color 150ms cubic-bezier(.23,1,.32,1), border-color 150ms cubic-bezier(.23,1,.32,1), transform 150ms cubic-bezier(.23,1,.32,1); }
+  .nf-button:active { transform: scale(.97); }
+  .nf-row { transition: background-color 150ms cubic-bezier(.23,1,.32,1), border-color 150ms cubic-bezier(.23,1,.32,1); }
+  .nf-row:hover { background: rgba(128,215,210,.045); }
+  .nf-nav { transition: color 150ms cubic-bezier(.23,1,.32,1), background-color 150ms cubic-bezier(.23,1,.32,1); }
+  .nf-nav:hover { background: rgba(255,255,255,.04); color: #f1f3ee; }
+  .nf-nav-active { background: rgba(128,215,210,.1); color: #8be0da; box-shadow: inset 2px 0 0 #80d7d2; }
+  .nf-status { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 9px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+  .nf-panel > * { position: relative; z-index: 1; }
+  .nf-panel::before { content: ""; position: absolute; right: 0; top: 0; height: 1px; width: 64px; background: linear-gradient(90deg, transparent, rgba(241,243,238,.4)); }
+  .nf-panel::after { content: ""; pointer-events: none; position: absolute; right: -22px; top: -20px; width: 190px; height: 150px; opacity: .24; background-image: radial-gradient(circle, rgba(241,243,238,.38) 1px, transparent 1.15px); background-size: 11px 11px; mask-image: radial-gradient(ellipse at center, black 8%, transparent 70%); }
+  .nf-scroll::-webkit-scrollbar { height: 7px; width: 7px; }
+  .nf-scroll::-webkit-scrollbar-track { background: transparent; }
+  .nf-scroll::-webkit-scrollbar-thumb { background: rgba(203,219,212,.18); }
+  [dir="rtl"] { font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif; overflow-x: hidden; }
+  [dir="rtl"] .nf-mono, [dir="rtl"] .nf-label, [dir="rtl"] .nf-status { font-family: "IBM Plex Mono", "IBM Plex Sans Arabic", monospace; letter-spacing: 0; }
+  [dir="rtl"] input:not([dir="ltr"]), [dir="rtl"] textarea, [dir="rtl"] select { text-align: right; }
+  .night-bloom { background: radial-gradient(circle at 72% 26%, rgba(255,255,255,.16), transparent 0 9rem, rgba(255,255,255,.05) 9.1rem, transparent 9.3rem), radial-gradient(circle at 76% 32%, rgba(255,255,255,.08), transparent 24rem), #0b0d0e; }
+  .night-orbit { border: 1px solid rgba(241,243,238,.18); border-radius: 999px; }
+  [dir="rtl"] .nf-enter-a { animation-name: nf-rise-rtl; }
+  [dir="rtl"] .transition-transform { transform-origin: right center; }
+  @media (prefers-reduced-motion: no-preference) {
+    .nf-enter-a { animation: nf-rise .32s cubic-bezier(.23,1,.32,1) both; }
+    .nf-enter-b { animation: nf-rise .32s .06s cubic-bezier(.23,1,.32,1) both; }
+    .nf-enter-c { animation: nf-rise .32s .12s cubic-bezier(.23,1,.32,1) both; }
+    .nf-live { animation: nf-live 1.8s ease-in-out infinite; }
+  }
+  @keyframes nf-rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes nf-rise-rtl { from { opacity: 0; transform: translateX(7px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes nf-live { 50% { opacity: .42; } }
+}

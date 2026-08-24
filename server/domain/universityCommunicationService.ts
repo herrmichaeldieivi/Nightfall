@@ -1,4 +1,4 @@
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM } from "../integrations/llm";
 import { readRecentUniversityGmailReplies, sendApprovedGmailMessage } from "../gmailConnection";
 import {
   categorizeUniversityInboundCommunication,

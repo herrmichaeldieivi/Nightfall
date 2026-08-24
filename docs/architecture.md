@@ -65,7 +65,10 @@ signal exists (see §4). This keeps migration and runtime behavior from drifting
 
 ## 3. Boundary Rules
 
-1. `client/**` never imports `server/**`; it speaks tRPC only.
+1. `client/**` never imports `server/**` at runtime; it speaks tRPC only.
+   Sole permitted exception: `import type { AppRouter } from server/routers`
+   in `client/src/lib/trpc.ts` (type-only, erased at compile time — enforced by
+   `server/architectureBoundaries.test.ts`).
 2. `server/domain/**` never imports integration internals
    (`integrations/email/gmail/**`, `integrations/llm/gemini/**`). It consumes
    interfaces (`EmailProvider`, `LlmProvider`) resolved via factories.

@@ -1,4 +1,4 @@
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM } from "../integrations/llm";
 import { storageGetSignedUrl } from "../storage";
 import { getStudentDocument, saveTranscriptExtraction, setTranscriptExtractionFailed, setTranscriptExtractionProcessing } from "../db";
 type UserId = Parameters<typeof getStudentDocument>[0];

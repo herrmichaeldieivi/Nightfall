@@ -1,4 +1,4 @@
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM } from "./integrations/llm";
 import type { AdminIntakeProposedProfile } from "./db";
 import type { AdminIntakeSourceRow } from "./adminIntake";
 

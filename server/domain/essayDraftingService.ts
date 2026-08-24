@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM } from "../integrations/llm";
 import { essayDraftInputSchema, essayDraftJsonSchema, essayDraftSchema, essayDraftSystemPrompt } from "../essayDraftingAI";
 import { getStudentFitProfile } from "../db";
 type UserId = Parameters<typeof getStudentFitProfile>[0];

@@ -1,4 +1,4 @@
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM } from "./integrations/llm";
 import { createUniversityRequirementAlert, getUniversityWatchPreferencesByScheduleTaskUid, listUniversityRequirementWatches, recordUniversityWatchObservation, setUniversitySourceCacheSummary, upsertUniversitySourceCache } from "./universityWatch";
 
 function extractReadableText(html: string) {

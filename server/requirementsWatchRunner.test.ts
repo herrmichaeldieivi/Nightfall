@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./_core/llm", () => ({ invokeLLM: vi.fn() }));
+vi.mock("./integrations/llm", () => ({ invokeLLM: vi.fn() }));
 vi.mock("./universityWatch", () => ({
   createUniversityRequirementAlert: vi.fn(),
   getUniversityWatchPreferencesByScheduleTaskUid: vi.fn(),
@@ -10,7 +10,7 @@ vi.mock("./universityWatch", () => ({
   upsertUniversitySourceCache: vi.fn(),
 }));
 
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM } from "./integrations/llm";
 import { primeUniversityRequirementWatch } from "./requirementsWatchRunner";
 import { recordUniversityWatchObservation, setUniversitySourceCacheSummary, upsertUniversitySourceCache } from "./universityWatch";
 

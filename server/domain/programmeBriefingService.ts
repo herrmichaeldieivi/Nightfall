@@ -1,4 +1,4 @@
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM } from "../integrations/llm";
 import { getCachedGermanyProgrammeBriefing, getGermanyProgrammeBriefingContext, listGermanyProgrammeBriefings, saveGermanyProgrammeBriefing } from "../db";
 
 import { isProgrammeBriefingFresh, parseProgrammeBriefing, programmeBriefingJsonSchema, programmeBriefingSourceHash } from "../programmeBriefing";

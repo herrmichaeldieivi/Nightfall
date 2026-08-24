@@ -1,7 +1,10 @@
 import { initTRPC, TRPCError } from "@trpc/server";
+import superjson from "superjson";
 import type { Context } from "./context";
 
-const t = initTRPC.context<Context>().create();
+// The client link serializes with SuperJSON (client/src/main.tsx); the server
+// side must match or every response fails to decode in the browser.
+const t = initTRPC.context<Context>().create({ transformer: superjson });
 
 export const router = t.router;
 export const publicProcedure = t.procedure;

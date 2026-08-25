@@ -1,7 +1,11 @@
 import { invokeLLM } from "../integrations/llm";
+
 import { getCachedGermanyProgrammeBriefing, getGermanyProgrammeBriefingContext, listGermanyProgrammeBriefings, saveGermanyProgrammeBriefing } from "../db";
 
+import { assertAiWithinPlan, recordAiCall } from "./planLimits";
+
 import { isProgrammeBriefingFresh, parseProgrammeBriefing, programmeBriefingJsonSchema, programmeBriefingSourceHash } from "../programmeBriefing";
+
 type UserId = Parameters<typeof getGermanyProgrammeBriefingContext>[0];
 
 export type BriefingRequest = { programmeId: string; language: "en" | "ar" };
@@ -14,6 +18,7 @@ export async function listParsedBriefings(userId: UserId, language: "en" | "ar")
 }
 
 export async function generateProgrammeBriefing(userId: UserId, input: BriefingRequest) {
+  await assertAiWithinPlan(Number(userId));
   const programme = await getGermanyProgrammeBriefingContext(userId, input.programmeId);
   if (!programme) throw new Error("Save this active programme before asking Nightfall to brief its public research record.");
   const sourceUrl = programme.officialProgrammeUrl || programme.programmeEvidenceUrl;
@@ -24,7 +29,9 @@ export async function generateProgrammeBriefing(userId: UserId, input: BriefingR
     const parsed = parseProgrammeBriefing(cached.briefingJson);
     if (parsed.success) return { programmeId: input.programmeId, ...parsed.data, sourceUrl: cached.sourceUrl, generatedAt: cached.generatedAt, cached: true };
   }
+  await recordAiCall(Number(userId));
   const response = await invokeLLM({
+    userId: Number(userId),
     model: "gemini-3-flash-preview",
     max_tokens: 1100,
     messages: [

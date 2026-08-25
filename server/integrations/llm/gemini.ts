@@ -1,9 +1,18 @@
 import axios from "axios";
+import { getStudentGeminiApiKey } from "../../db";
 import type { LLMOptions, LLMResponse, LlmProvider } from "./types";
+
+async function resolveApiKey(userId?: number): Promise<string> {
+  if (userId) {
+    const ownKey = await getStudentGeminiApiKey(userId).catch(() => null);
+    if (ownKey) return ownKey;
+  }
+  return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+}
 
 export class GeminiLlmProvider implements LlmProvider {
   async complete(options: LLMOptions): Promise<LLMResponse> {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+    const apiKey = await resolveApiKey(options.userId);
     if (!apiKey) {
       return {
         choices: [

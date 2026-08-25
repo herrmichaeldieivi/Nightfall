@@ -1,6 +1,7 @@
 import { boolean, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
 
 export const usersRoleEnum = pgEnum("users_role", ["user", "admin"]);
+export const usersPlanEnum = pgEnum("users_plan", ["free", "pro", "premium"]);
 export const universityContactsRelationshipStageEnum = pgEnum("university_contacts_relationship_stage", ["cold", "warm", "active", "responded", "paused"]);
 export const universityContactsContactPreferenceEnum = pgEnum("university_contacts_contact_preference", ["email", "portal", "do_not_contact"]);
 export const universityCommunicationsDirectionEnum = pgEnum("university_communications_direction", ["outbound", "inbound"]);
@@ -56,6 +57,8 @@ export const users = pgTable("users", {
   googleId: varchar("google_id", { length: 64 }),
   /** Bumped to invalidate every issued session server-side (logout everywhere, password change). */
   tokenVersion: integer("token_version").default(0).notNull(),
+  /** Self-selected feature tier. Payment wiring is deferred; activation is manual for now. */
+  plan: usersPlanEnum("plan").default("free").notNull(),
   role: usersRoleEnum("role").default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
@@ -107,6 +110,8 @@ export const studentProfiles = pgTable("student_profiles", {
   lastViewedComparisonUniversityId: integer("last_viewed_comparison_university_id"),
   /** Student's own Gemini API key, sealed under their per-user DEK (see userKeys). Never returned to any client after save. */
   geminiApiKeySealed: text("gemini_api_key_sealed"),
+  /** Version string of the last accepted Terms/EULA/Privacy set (e.g. "2026-08"). */
+  acceptedLegalVersion: varchar("accepted_legal_version", { length: 16 }),
   onboardingComplete: boolean("onboarding_complete").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -618,3 +623,11 @@ export const userKeys = pgTable("user_keys", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   destroyedAt: timestamp("destroyed_at"),
 }, (table) => [index("user_key_student_idx").on(table.userId)]);
+
+/** Daily AI-usage counter per user, used by the tier limit gate. Reset by date key (UTC). */
+export const aiUsageCounters = pgTable("ai_usage_counters", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  usageDate: varchar("usage_date", { length: 10 }).notNull(),
+  callCount: integer("call_count").default(0).notNull(),
+}, (table) => [uniqueIndex("ai_usage_user_date_unique").on(table.userId, table.usageDate)]);

@@ -7,6 +7,8 @@ export type LLMOptions = {
   model?: string;
   max_tokens?: number;
   max_completion_tokens?: number;
+  /** When provided, the student's own DEK-sealed Gemini key is used first (BYO-AI). */
+  userId?: number;
   messages: LLMMessage[];
   response_format?: {
     type: string;

@@ -3,7 +3,7 @@ import { parse as parseCookie } from "cookie";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { isExploringStudyDirections, isMeaningfulStudyDirection } from "@shared/studyDirection";
-import { addMilestone, addReminder, addUniversity, addWaitlistEntry, approveUniversityCommunication, archiveGermanyProgramme, archiveItalyProgramme, bumpUserTokenVersion, completeUniversityFollowUpPlan, consumeStudentConsultation, createFamilyInvite, createUniversityCommunicationDraft, createUniversityFollowUpPlan, disconnectStudentGmail, ensureReminderPreferences, getFamilyView, getStudentConsultationCycle, getStudentFitProfile, getStudentProfile, getWorkspaceProfile, handoffGermanyProgrammeDeadline, listApplicationEvents, listDeadlineNotifications, listFamilyInvites, listGermanyProgrammeCandidatesForFit, listGermanyProgrammeDeadlineHandoffs, listItalyProgrammeCandidatesForFit, listMilestones, listReminders, listSavedGermanyProgrammes, listSavedItalyProgrammes, listStudentDocuments, listUniversities, listUniversityFollowUpNotifications, listUniversityRelationshipWorkspace, markDeadlineNotificationRead, markUniversityFollowUpNotificationRead, removeGermanyProgramme, removeGermanyProgrammeDeadlineHandoff, removeItalyProgramme, saveGermanyProgramme, saveGermanyProgrammeDecisionNotes, saveItalyProgramme, saveItalyProgrammeDecisionNotes, saveLastViewedComparisonUniversity, saveStudentFitProfile, saveStudentProfile, saveUniversityContact, saveWorkspaceProfile, searchGermanyProgrammeIndex, searchItalyProgrammeIndex, setGermanyProgrammePin, setGermanyProgrammePriority, setItalyProgrammePin, setItalyProgrammePriority, toggleMilestone, toggleReminder, updateUniversityCommunicationDraft, uploadStudentTranscript } from "./db";
+import { addMilestone, addReminder, addUniversity, acceptLegalVersion, addWaitlistEntry, approveUniversityCommunication, archiveGermanyProgramme, archiveItalyProgramme, bumpUserTokenVersion, clearGeminiApiKey, completeUniversityFollowUpPlan, consumeStudentConsultation, createFamilyInvite, createUniversityCommunicationDraft, createUniversityFollowUpPlan, disconnectStudentGmail, ensureReminderPreferences, getFamilyView, getStudentConsultationCycle, getStudentFitProfile, getStudentProfile, getWorkspaceProfile, handoffGermanyProgrammeDeadline, listApplicationEvents, listDeadlineNotifications, listFamilyInvites, listGermanyProgrammeCandidatesForFit, listGermanyProgrammeDeadlineHandoffs, listItalyProgrammeCandidatesForFit, listMilestones, listReminders, listSavedGermanyProgrammes, listSavedItalyProgrammes, listStudentDocuments, listUniversities, listUniversityFollowUpNotifications, listUniversityRelationshipWorkspace, markDeadlineNotificationRead, markUniversityFollowUpNotificationRead, removeGermanyProgramme, removeGermanyProgrammeDeadlineHandoff, removeItalyProgramme, saveGermanyProgramme, saveGermanyProgrammeDecisionNotes, saveItalyProgramme, saveItalyProgrammeDecisionNotes, saveLastViewedComparisonUniversity, saveStudentFitProfile, saveStudentProfile, saveUniversityContact, saveWorkspaceProfile, searchGermanyProgrammeIndex, searchItalyProgrammeIndex, setGermanyProgrammePin, setGermanyProgrammePriority, setItalyProgrammePin, setItalyProgrammePriority, toggleMilestone, toggleReminder, updateUniversityCommunicationDraft, uploadStudentTranscript } from "./db";
 import { commitAdminIntakeRecord, createAdminIntakeUpload, listAdminIntakeRecords, listAdminIntakeUploads, reviewAdminIntakeRecord, saveAdminIntakeDrafts, setAdminIntakeUploadFailed } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { essayDraftInputSchema } from "./essayDraftingAI";
@@ -19,6 +19,8 @@ import { generateProgrammeBriefing, listParsedBriefings } from "./domain/program
 import { generateAiFollowUpDraft, sendApprovedUniversityCommunication as deliverApprovedUniversityCommunication, syncUniversityRepliesFromInbox } from "./domain/universityCommunicationService";
 import { syncRequirementWatch, updateReminderPreferencesWithSchedule, updateUniversityWatchPreferencesWithSchedule } from "./domain/schedulingService";
 import { extractTranscriptSnapshot } from "./domain/transcriptService";
+import { PLAN_LIMITS, normalizePlan } from "./domain/planLimits";
+import { deleteStudentAccount, exportStudentData, getStudentGeminiApiKey, saveGeminiApiKey } from "./db";
 import { ensureUniversityWatchPreferences, listUniversityRequirementAlerts, listUniversityRequirementWatches, listUniversityWatchSourceCaches, markUniversityRequirementAlertRead } from "./universityWatch";
 
 export const waitlistInput = z.object({
@@ -135,6 +137,32 @@ export const appRouter = router({
   }),
   student: router({
     profile: protectedProcedure.query(({ ctx }) => getStudentProfile(ctx.user.id)),
+    acceptLegal: protectedProcedure.input(z.object({ version: z.string().trim().min(4).max(16) })).mutation(({ ctx, input }) => acceptLegalVersion(ctx.user.id, input.version)),
+    // Settings → Connections: BYO Gemini. The key is sealed under the user's
+    // DEK and is never returned to any client after save — only a boolean.
+    saveGeminiApiKey: protectedProcedure.input(z.object({ apiKey: z.string().trim().min(10).max(200) })).mutation(({ ctx, input }) => saveGeminiApiKey(ctx.user.id, input.apiKey)),
+    clearGeminiApiKey: protectedProcedure.mutation(({ ctx }) => clearGeminiApiKey(ctx.user.id)),
+    geminiKeyStatus: protectedProcedure.query(async ({ ctx }) => ({ hasKey: Boolean(await getStudentGeminiApiKey(ctx.user.id)) })),
+    planUsage: protectedProcedure.query(({ ctx }) => {
+      const plan = normalizePlan(String((ctx.user as { plan?: string }).plan ?? "free"));
+      return { plan, limits: PLAN_LIMITS[plan], googleConfigured: Boolean(process.env.GOOGLE_CLIENT_ID), geminiPlatformConfigured: Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) };
+    }),
+    // Settings → Privacy & data: full erasure. Hard-deletes every personal
+    // row, crypto-shreds the user's DEK (backups become unreadable), then
+    // revokes all sessions and clears the cookie in one irreversible action.
+    deleteAccount: protectedProcedure.input(z.object({ confirmText: z.literal("DELETE MY ACCOUNT") })).mutation(async ({ ctx, input }) => {
+      if (input.confirmText !== "DELETE MY ACCOUNT") throw new Error("Type DELETE MY ACCOUNT to confirm.");
+      try {
+        await deleteStudentAccount(ctx.user.id);
+      } catch (error) {
+        console.error("[Auth] Account deletion error:", error);
+        throw new Error("Deletion failed partway. Contact support — do not re-register with this email.");
+      }
+      ctx.res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(ctx.req), maxAge: -1 });
+      return { deleted: true };
+    }),
+    // GDPR data portability: everything we hold, as downloadable JSON.
+    exportData: protectedProcedure.query(({ ctx }) => exportStudentData(ctx.user.id)),
     completeOnboarding: protectedProcedure.input(studentProfileInput).mutation(({ ctx, input }) => saveStudentProfile(ctx.user.id, input)),
     consultationCycle: protectedProcedure.query(async ({ ctx }) => {
       const profile = await getStudentProfile(ctx.user.id);

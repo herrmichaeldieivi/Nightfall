@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Operations from "./pages/Operations";
 import Waitlist from "./pages/Waitlist";
 import { LoginPage, SignupPage } from "./pages/Access";
+import { AcceptGate, LegalPage } from "./pages/Legal";
 import Onboarding from "./pages/Onboarding";
 import FamilyView from "./pages/FamilyView";
 import StudentOnboarding from "./pages/StudentOnboarding";
@@ -29,7 +30,7 @@ function ProtectedWorkspace({ children }: { children: React.ReactNode }) {
   const [, setLocation] = useLocation();
   useEffect(() => { if (!loading && !isAuthenticated) setLocation("/login"); }, [loading, isAuthenticated, setLocation]);
   if (loading || !isAuthenticated) return <div className="nf-shell grid min-h-screen place-items-center text-white"><Loader2 className="h-5 w-5 animate-spin" /></div>;
-  return <>{children}</>;
+  return <AcceptGate>{children}</AcceptGate>;
 }
 
 function DashboardEntry() {
@@ -55,7 +56,8 @@ function Router() {
     <Route path="/waitlist" component={Waitlist} />
     <Route path="/login" component={LoginPage} />
     <Route path="/signup" component={SignupPage} />
-    <Route path="/onboarding" component={ConsultantOnboarding} />
+    <Route path="/legal/:doc">{(params) => <LegalPage doc={(["terms", "eula", "privacy"].includes(params.doc) ? params.doc : "terms") as "terms" | "eula" | "privacy"} />}</Route>
+    <Route path="/onboarding"><ProtectedWorkspace><AcceptGate><ConsultantOnboarding /></AcceptGate></ProtectedWorkspace></Route>
     <Route path="/student-onboarding"><ProtectedWorkspace><ConsultantOnboarding /></ProtectedWorkspace></Route>
     <Route path="/my-journey"><ProtectedWorkspace><JourneyTools /></ProtectedWorkspace></Route>
     <Route path="/family/:token" component={FamilyView} />

@@ -2,6 +2,7 @@ import type { z } from "zod";
 import { invokeLLM } from "../integrations/llm";
 import { essayDraftInputSchema, essayDraftJsonSchema, essayDraftSchema, essayDraftSystemPrompt } from "../essayDraftingAI";
 import { getStudentFitProfile } from "../db";
+import { assertAiWithinPlan, recordAiCall } from "./planLimits";
 type UserId = Parameters<typeof getStudentFitProfile>[0];
 
 
@@ -10,7 +11,10 @@ export type EssayDraftInput = z.infer<typeof essayDraftInputSchema>;
 export async function prepareEssayDraft(userId: UserId, input: EssayDraftInput) {
   const fitProfile = await getStudentFitProfile(userId);
   if (!fitProfile) throw new Error("Complete your free Consultant session before drafting an essay, so Nightfall has your fit profile to work from.");
+  await assertAiWithinPlan(Number(userId));
+  await recordAiCall(Number(userId));
   const response = await invokeLLM({
+    userId: Number(userId),
     model: "gemini-3-flash-preview",
     max_tokens: 1600,
     messages: [

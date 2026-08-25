@@ -230,6 +230,37 @@ export async function getStudentGeminiApiKey(userId: number): Promise<string | n
   return decryptForUser(userId, profile.geminiApiKeySealed);
 }
 
+export async function acceptLegalVersion(userId: number, version: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is unavailable");
+  await db.update(studentProfiles).set({ acceptedLegalVersion: version.slice(0, 16) }).where(eq(studentProfiles.userId, userId));
+  return { accepted: true };
+}
+
+/** GDPR data portability: everything we hold on this student, minus secrets. */
+export async function exportStudentData(userId: number) {
+  const [profile, fitProfile, universities, milestones, reminders, documents, savedGermany, savedItaly, handoffs, briefings, events, relationship] = await Promise.all([
+    getStudentProfile(userId), getStudentFitProfile(userId), listUniversities(userId), listMilestones(userId), listReminders(userId), listStudentDocuments(userId), listSavedGermanyProgrammes(userId), listSavedItalyProgrammes(userId), listGermanyProgrammeDeadlineHandoffs(userId), listGermanyProgrammeBriefings(userId, "en"), listApplicationEvents(userId, { limit: 200 }), listUniversityRelationshipWorkspace(userId),
+  ]);
+  return {
+    exportedAt: new Date().toISOString(),
+    profile,
+    fitProfile,
+    savedUniversities: universities,
+    milestones,
+    reminders,
+    documents: documents.map((d) => ({ ...d, storageKey: undefined })),
+    savedGermanyProgrammes: savedGermany,
+    savedItalyProgrammes: savedItaly,
+    deadlineHandoffs: handoffs,
+    researchBriefings: briefings,
+    applicationEvents: events,
+    contacts: relationship.contacts,
+    communications: relationship.communications,
+    followUpPlans: relationship.followUpPlans,
+  };
+}
+
 /**
  * Full account erasure. Hard-deletes every personal row across all tables,
  * then crypto-shreds the user's DEK so any encrypted payload that survived

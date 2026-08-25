@@ -33,7 +33,8 @@ function GraduationLock({ year, onRollDigit, rollDirection, label, hint, reduceM
 }
 
 export default function Waitlist() {
-  const [, setLocation] = useLocation(); const { language, isArabic, toggleLanguage } = usePublicLanguage(); const t = copy[language]; const reduceMotion = useReducedMotion();
+  const [, setLocation] = useLocation(); const { language, isArabic, setLanguage } = usePublicLanguage();
+  const toggleLanguage = () => setLanguage(isArabic ? "en" : "ar"); const t = copy[language]; const reduceMotion = useReducedMotion();
   const [step, setStep] = useState(0); const [form, setForm] = useState({ name: "", email: "", destination: "", otherDestination: "", graduationYear: "2027" }); const [lastRollDirection, setLastRollDirection] = useState<1 | -1>(1);
   const mutation = trpc.waitlist.join.useMutation(); const resolvedDestination = form.destination === OTHER_DESTINATION ? form.otherDestination : form.destination;
   const canContinue = useMemo(() => step === 0 ? form.name.trim().length >= 2 : step === 1 ? resolvedDestination.trim().length >= 2 : /^\S+@\S+\.\S+$/.test(form.email.trim()), [form.email, form.name, resolvedDestination, step]);

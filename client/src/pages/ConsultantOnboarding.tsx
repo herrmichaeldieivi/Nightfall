@@ -10,8 +10,8 @@ import { shouldRedirectCompletedProfile } from "@/lib/consultantResume";
 import { clearPendingConsultantInterview, readPendingConsultantInterview, storePendingConsultantInterview } from "@/lib/pendingConsultantInterview";
 
 const ease = [0.23, 1, 0.32, 1] as const;
-type Turn = "name" | "direction" | "level" | "budget" | "funding" | "sponsor" | "nationality" | "diploma" | "average" | "scale" | "language" | "priorities" | "phone" | "consent" | "email" | "ready";
-const turns: Turn[] = ["name", "direction", "level", "budget", "funding", "sponsor", "nationality", "diploma", "average", "scale", "language", "priorities", "phone", "consent", "email", "ready"];
+type Turn = "name" | "direction" | "level" | "budget" | "funding" | "sponsor" | "nationality" | "diploma" | "average" | "scale" | "language" | "priorities" | "phone" | "consent" | "ready";
+const turns: Turn[] = ["name", "direction", "level", "budget", "funding", "sponsor", "nationality", "diploma", "average", "scale", "language", "priorities", "phone", "consent", "ready"];
 
 // Phase 2 — the assessment reads as three comprehensible chapters, not one long
 // undifferentiated form. Contact details (phone, email) are deliberately the
@@ -22,7 +22,7 @@ const chapterForTurn: Record<Turn, Chapter> = {
   name: "direction", direction: "direction", level: "direction",
   nationality: "reality", diploma: "reality", average: "reality", scale: "reality", language: "reality",
   budget: "practical", funding: "practical", sponsor: "practical", priorities: "practical",
-  phone: "handoff", consent: "handoff", email: "handoff", ready: "handoff",
+  phone: "handoff", consent: "handoff", ready: "handoff",
 };
 const chapterOrder: Chapter[] = ["direction", "reality", "practical", "handoff"];
 
@@ -30,18 +30,18 @@ const copy = {
   en: {
     label: "FREE CONSULTING SESSION", intro: "A proper first assessment, one useful question at a time.", note: "We ask only what can change your research path. Your answers stay on this device until you choose to unlock them.",
     chapterDirection: "Direction", chapterReality: "Reality", chapterPractical: "Practical path", chapterHandoff: "Secure handoff",
-    name: "First, what should I call you?", direction: "What would you genuinely like to study?", level: "Which level are you planning for?", budget: "How does tuition feel for your family right now?", funding: "How do you expect to fund this path?", sponsor: "Would a sponsor be part of your funding plan?", nationality: "What is your nationality?", diploma: "Where did you receive—or expect to receive—your high-school diploma?", average: "What is your average or most recent result?", scale: "And what scale is that on?", language: "Which languages could you realistically study in?", priorities: "When you look at a university, what matters most to you?", phone: "What is the best phone number for your private Nightfall space?", consent: "May I use this context to prepare reviewable research signals? Never an eligibility, admission, visa, or funding decision.", email: "Last thing: what email should we verify before this assessment becomes a saved research set?", ready: "I have enough to prepare your first focused research set.",
-    typed: "Type your reply…", continue: "Send", nameHint: "For example, Rania", directionHint: "For example, Architecture", nationalityHint: "For example, Syrian", diplomaHint: "For example, Syria", averageHint: "For example, 89", scaleHint: "For example, out of 100", languageHint: "For example, English and German", prioritiesHint: "For example, cost, city, language", phoneHint: "+961 …", emailHint: "you@example.com",
+    name: "First, what should I call you?", direction: "What would you genuinely like to study?", level: "Which level are you planning for?", budget: "How does tuition feel for your family right now?", funding: "How do you expect to fund this path?", sponsor: "Would a sponsor be part of your funding plan?", nationality: "What is your nationality?", diploma: "Where did you receive—or expect to receive—your high-school diploma?", average: "What is your average or most recent result?", scale: "And what scale is that on?", language: "Which languages could you realistically study in?", priorities: "When you look at a university, what matters most to you?", phone: "What is the best phone number for your private Nightfall space?", consent: "May I use this context to prepare reviewable research signals? Never an eligibility, admission, visa, or funding decision.", ready: "I have enough to prepare your first focused research set.",
+    typed: "Type your reply…", continue: "Send", nameHint: "For example, Rania", directionHint: "For example, Architecture", nationalityHint: "For example, Syrian", diplomaHint: "For example, Syria", averageHint: "For example, 89", scaleHint: "For example, out of 100", languageHint: "For example, English and German", prioritiesHint: "For example, cost, city, language", phoneHint: "+961 …",
     signalsLabel: "Research signals", preparationLabel: "Preparation to check", cannotDecideLabel: "What Nightfall cannot decide",
-    clarifyDirection: "I could not recognise that as a study direction yet. Try a field like Architecture or Medicine, or choose that you are still exploring.", clarify: "I need a little more than that to make this useful. Try a short, real answer and we can keep going.", emailInvalid: "Please use an email format we can verify at the final unlock step.", budgetChoices: ["Tight", "Considered", "Flexible"], levelChoices: ["Bachelor’s", "Master’s", "Still deciding"], fundingChoices: ["Self-funded", "Sponsor", "Scholarship", "Mixed", "Still working it out"], sponsorChoices: ["Yes, likely", "No / not relying on one"], suggestion: "A few useful starting fields", exploring: "I’m still exploring", yes: "Yes, use it for research", no: "Not yet", local: "Held on this device", unlock: "Continue to account unlock", summary: "YOUR LOCAL ASSESSMENT", account: "Nothing above is saved until you continue through the existing account unlock.",
+    clarifyDirection: "I could not recognise that as a study direction yet. Try a field like Architecture or Medicine, or choose that you are still exploring.", clarify: "I need a little more than that to make this useful. Try a short, real answer and we can keep going.", budgetChoices: ["Tight", "Considered", "Flexible"], levelChoices: ["Bachelor’s", "Master’s", "Still deciding"], fundingChoices: ["Self-funded", "Sponsor", "Scholarship", "Mixed", "Still working it out"], sponsorChoices: ["Yes, likely", "No / not relying on one"], suggestion: "A few useful starting fields", exploring: "I’m still exploring", yes: "Yes, use it for research", no: "Not yet", local: "Held on this device", unlock: "Continue to account unlock", summary: "YOUR LOCAL ASSESSMENT", account: "Nothing above is saved until you continue through the existing account unlock.",
   },
   ar: {
     label: "جلسة استشارة مجانية", intro: "تقييم أول محترم، سؤال مفيد بكل مرة.", note: "بنسأل بس عن الأشياء اللي ممكن تغيّر طريق بحثك. أجوبتك بتضلّ على جهازك لحد ما تختار تفتحها.",
     chapterDirection: "الاتجاه", chapterReality: "الواقع", chapterPractical: "المسار العملي", chapterHandoff: "التسليم الآمن",
-    name: "أول شي، شو بتحب نناديك؟", direction: "شو المجال اللي فعلاً حابب تدرسه؟", level: "لأي مستوى عم تخطّط؟", budget: "كيف بتحسّ ميزانية الرسوم لعيلتك هالفترة؟", funding: "كيف متوقع تموّل هالطريق؟", sponsor: "هل الكفيل أو الـ sponsor جزء من خطتك؟", nationality: "شو جنسيتك؟", diploma: "وين أخدت—or رح تاخد—شهادة الثانوية؟", average: "شو معدلك أو آخر نتيجة إلك؟", scale: "وعلى أي سلم علامات؟", language: "بأي لغات فيك تدرس بشكل واقعي؟", priorities: "لما تطلّع على جامعة، شو أهم شي إلك؟", phone: "شو أفضل رقم لمساحتك الخاصة بنايتفول؟", consent: "بتوافق نستخدم هالسياق لإشارات بحث قابلة للمراجعة؟ مش لقرار أهلية أو قبول أو فيزا أو تمويل.", email: "آخر شغلة: على أي إيميل بدك نتحقق قبل ما يصير هالتقييم مجموعة بحث محفوظة؟", ready: "صار عندي كفاية أجهّزلك أول مجموعة بحث مركّزة.",
-    typed: "اكتب جوابك…", continue: "إرسال", nameHint: "مثلاً، رانيا", directionHint: "مثلاً، عمارة", nationalityHint: "مثلاً، سوري", diplomaHint: "مثلاً، سوريا", averageHint: "مثلاً، ٨٩", scaleHint: "مثلاً، من ١٠٠", languageHint: "مثلاً، إنجليزي وألماني", prioritiesHint: "مثلاً، الرسوم والمدينة واللغة", phoneHint: "+٩٦١ …", emailHint: "you@example.com",
+    name: "أول شي، شو بتحب نناديك؟", direction: "شو المجال اللي فعلاً حابب تدرسه؟", level: "لأي مستوى عم تخطّط؟", budget: "كيف بتحسّ ميزانية الرسوم لعيلتك هالفترة؟", funding: "كيف متوقع تموّل هالطريق؟", sponsor: "هل الكفيل أو الـ sponsor جزء من خطتك؟", nationality: "شو جنسيتك؟", diploma: "وين أخدت—or رح تاخد—شهادة الثانوية؟", average: "شو معدلك أو آخر نتيجة إلك؟", scale: "وعلى أي سلم علامات؟", language: "بأي لغات فيك تدرس بشكل واقعي؟", priorities: "لما تطلّع على جامعة، شو أهم شي إلك؟", phone: "شو أفضل رقم لمساحتك الخاصة بنايتفول؟", consent: "بتوافق نستخدم هالسياق لإشارات بحث قابلة للمراجعة؟ مش لقرار أهلية أو قبول أو فيزا أو تمويل.", ready: "صار عندي كفاية أجهّزلك أول مجموعة بحث مركّزة.",
+    typed: "اكتب جوابك…", continue: "إرسال", nameHint: "مثلاً، رانيا", directionHint: "مثلاً، عمارة", nationalityHint: "مثلاً، سوري", diplomaHint: "مثلاً، سوريا", averageHint: "مثلاً، ٨٩", scaleHint: "مثلاً، من ١٠٠", languageHint: "مثلاً، إنجليزي وألماني", prioritiesHint: "مثلاً، الرسوم والمدينة واللغة", phoneHint: "+٩٦١ …",
     signalsLabel: "إشارات البحث", preparationLabel: "شغلات لازم تتأكد منها", cannotDecideLabel: "أشياء ما فينا نايتفول يقررها",
-    clarifyDirection: "هالكلام ما باين إنه مجال دراسة بعد. جرّب مجال مثل عمارة أو طب، أو اختار إنك بعدك عم تستكشف.", clarify: "بدي جواب أوضح شوي حتى يضل هالحديث مفيد. جرّب جواب قصير وحقيقي ونكمّل.", emailInvalid: "اكتب إيميل بصيغة فينا نتحقق منها بآخر خطوة.", budgetChoices: ["محدودة", "مدروسة", "مرنة"], levelChoices: ["بكالوريوس", "ماجستير", "لسه بقرّر"], fundingChoices: ["تمويل شخصي", "كفيل / Sponsor", "منحة", "مختلط", "لسه عم برتّبها"], sponsorChoices: ["نعم، غالباً", "لا / مو معتمد عليه"], suggestion: "كم بداية ممكنة", exploring: "بعدني عم استكشف", yes: "نعم، استخدمه للبحث", no: "مش هلق", local: "محفوظة بهالجهاز", unlock: "كمّل لفتح الحساب", summary: "تقييمك المحلي", account: "ولا شي فوق بينحفظ قبل ما تكمّل من خلال فتح الحساب الموجود.",
+    clarifyDirection: "هالكلام ما باين إنه مجال دراسة بعد. جرّب مجال مثل عمارة أو طب، أو اختار إنك بعدك عم تستكشف.", clarify: "بدي جواب أوضح شوي حتى يضل هالحديث مفيد. جرّب جواب قصير وحقيقي ونكمّل.", budgetChoices: ["محدودة", "مدروسة", "مرنة"], levelChoices: ["بكالوريوس", "ماجستير", "لسه بقرّر"], fundingChoices: ["تمويل شخصي", "كفيل / Sponsor", "منحة", "مختلط", "لسه عم برتّبها"], sponsorChoices: ["نعم، غالباً", "لا / مو معتمد عليه"], suggestion: "كم بداية ممكنة", exploring: "بعدني عم استكشف", yes: "نعم، استخدمه للبحث", no: "مش هلق", local: "محفوظة بهالجهاز", unlock: "كمّل لفتح الحساب", summary: "تقييمك المحلي", account: "ولا شي فوق بينحفظ قبل ما تكمّل من خلال فتح الحساب الموجود.",
   },
 } as const;
 
@@ -63,13 +63,12 @@ function answerFor(turn: Turn, draft: WarmInterviewDraft, language: "en" | "ar")
   if (turn === "priorities") return draft.priorities;
   if (turn === "phone") return draft.phoneNumber;
   if (turn === "consent") return draft.consent ? t.yes : "";
-  if (turn === "email") return draft.contactEmail;
   return "";
 }
 
 function inputMeta(turn: Turn, t: typeof copy.en | typeof copy.ar) {
-  const map: Partial<Record<Turn, string>> = { name: t.nameHint, direction: t.directionHint, nationality: t.nationalityHint, diploma: t.diplomaHint, average: t.averageHint, scale: t.scaleHint, language: t.languageHint, priorities: t.prioritiesHint, phone: t.phoneHint, email: t.emailHint };
-  return { placeholder: map[turn] ?? t.typed, type: turn === "email" ? "email" : turn === "phone" ? "tel" : "text" };
+  const map: Partial<Record<Turn, string>> = { name: t.nameHint, direction: t.directionHint, nationality: t.nationalityHint, diploma: t.diplomaHint, average: t.averageHint, scale: t.scaleHint, language: t.languageHint, priorities: t.prioritiesHint, phone: t.phoneHint };
+  return { placeholder: map[turn] ?? t.typed, type: turn === "phone" ? "tel" : "text" };
 }
 
 function TypedConversation({ draft, setDraft, language, isArabic, onUnlock, resumed }: { draft: WarmInterviewDraft; setDraft: React.Dispatch<React.SetStateAction<WarmInterviewDraft>>; language: "en" | "ar"; isArabic: boolean; onUnlock: () => void; resumed: boolean }) {
@@ -84,7 +83,7 @@ function TypedConversation({ draft, setDraft, language, isArabic, onUnlock, resu
 
   useEffect(() => { setValue(""); setFeedback(null); if (turn !== "ready") setTimeout(() => inputRef.current?.focus(), 40); }, [turn]);
   const saveTextAnswer = (next: string) => {
-    const setters: Partial<Record<Turn, keyof WarmInterviewDraft>> = { name: "preferredName", direction: "studyDirection", level: "studyLevel", nationality: "nationality", diploma: "highSchoolDiplomaOrigin", average: "academicAverage", scale: "gradeScale", language: "languageComfort", priorities: "priorities", phone: "phoneNumber", email: "contactEmail" };
+    const setters: Partial<Record<Turn, keyof WarmInterviewDraft>> = { name: "preferredName", direction: "studyDirection", level: "studyLevel", nationality: "nationality", diploma: "highSchoolDiplomaOrigin", average: "academicAverage", scale: "gradeScale", language: "languageComfort", priorities: "priorities", phone: "phoneNumber" };
     const field = setters[turn];
     if (field) setDraft((current) => ({ ...current, [field]: next }));
   };
@@ -94,8 +93,7 @@ function TypedConversation({ draft, setDraft, language, isArabic, onUnlock, resu
     if ((["budget", "funding", "sponsor", "consent"] as Turn[]).includes(turn)) return;
     const kind = turn === "name" ? "name" : turn === "direction" ? "direction" : turn === "average" || turn === "scale" ? "grades" : turn === "phone" ? "phone" : "context";
     const quality = consultantInputQuality(kind, value);
-    const invalidEmail = turn === "email" && !/^\S+@\S+\.\S+$/.test(value.trim());
-    if (quality !== "usable" || invalidEmail) { setFeedback(turn === "direction" ? t.clarifyDirection : invalidEmail ? t.emailInvalid : t.clarify); return; }
+    if (quality !== "usable") { setFeedback(turn === "direction" ? t.clarifyDirection : t.clarify); return; }
     saveTextAnswer(value.trim());
     setTurnIndex((current) => current + 1);
   };
@@ -112,7 +110,8 @@ function TypedConversation({ draft, setDraft, language, isArabic, onUnlock, resu
 export default function ConsultantOnboarding() {
   const [, setLocation] = useLocation();
   const { user, loading } = useAuth();
-  const { language, isArabic, toggleLanguage } = usePublicLanguage();
+  const { language, isArabic, setLanguage } = usePublicLanguage();
+  const toggleLanguage = () => setLanguage(isArabic ? "en" : "ar");
   const t = copy[language];
   const profile = trpc.student.profile.useQuery(undefined, { enabled: !!user });
   const complete = trpc.student.completeOnboarding.useMutation();

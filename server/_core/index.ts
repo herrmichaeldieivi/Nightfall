@@ -13,6 +13,7 @@ import { createDeadlineAlertsForSchedule } from "../db";
 import { runUniversityRequirementsWatchForSchedule } from "../requirementsWatchRunner";
 import { createContext } from "./context";
 import { authenticateRequest, createSessionToken, loginUser, registerUser } from "./auth";
+import { requestEmailCode, verifyEmailCode } from "../emailVerification";
 import { findOrCreateGoogleUser } from "../db";
 import { ENV } from "./env";
 import { getSessionCookieOptions } from "./cookies";
@@ -99,10 +100,32 @@ async function startServer() {
     }
   });
 
-  // Self-hosted credential auth.
+  // Self-hosted credential auth. Registration is gated by #163: a time-limited
+  // code must be requested for the email, verified, and the resulting unlock
+  // token presented — acting as both an ownership check and a rate-limit gate.
+  app.post("/api/auth/request-code", authLimiter, async (req, res) => {
+    try {
+      const result = await requestEmailCode(req.body?.email ?? "");
+      return res.json({ success: true, expiresAt: result.expiresAt.toISOString() });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not send the verification code.";
+      return res.status(400).json({ error: message });
+    }
+  });
+
+  app.post("/api/auth/verify-code", authLimiter, async (req, res) => {
+    try {
+      const result = await verifyEmailCode(req.body?.email ?? "", req.body?.code ?? "");
+      return res.json({ success: true, unlockToken: result.unlockToken });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Verification failed.";
+      return res.status(400).json({ error: message });
+    }
+  });
+
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const user = await registerUser({ email: req.body?.email ?? "", name: req.body?.name ?? "", password: req.body?.password ?? "" });
+      const user = await registerUser({ email: req.body?.email ?? "", name: req.body?.name ?? "", password: req.body?.password ?? "", unlockToken: req.body?.unlockToken ?? "" });
       if (!user) throw new Error("Could not create the account.");
       setSessionCookie(res, await createSessionToken(user));
       return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } });

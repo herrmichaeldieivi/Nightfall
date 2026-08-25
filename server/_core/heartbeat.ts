@@ -25,9 +25,11 @@ function fieldMatches(field: string, value: number): boolean {
 function cronMatchesNow(cron: string, now: Date): boolean {
   const fields = cron.trim().split(/\s+/);
   if (fields.length !== 6) return false;
-  const [sec, min, hour, dom, mon, dow] = fields;
+  const [, min, hour, dom, mon, dow] = fields;
+  // The seconds field is intentionally ignored: the ticker runs every ~20s and
+  // would often miss an exact "second 0" match. Delivery is deduped per minute
+  // via lastFiredMinute, so matching anywhere within the minute is safe.
   return (
-    fieldMatches(sec, now.getSeconds()) &&
     fieldMatches(min, now.getMinutes()) &&
     fieldMatches(hour, now.getHours()) &&
     fieldMatches(dom, now.getDate()) &&

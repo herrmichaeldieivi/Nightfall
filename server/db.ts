@@ -2,11 +2,12 @@ import { and, desc, eq, gte, isNull, isNotNull, like, lte, or, sql } from "drizz
 import { randomUUID } from "crypto";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { applicationEvents, applicationMilestones, deadlineNotifications, familyInvites, germanyProgrammeDeadlineHandoffs, germanyProgrammeIndex, italyProgrammeIndex, InsertUser, personalReminders, programmeResearchBriefings, reminderPreferences, savedGermanyProgrammes, savedItalyProgrammes, savedUniversities, studentConsultationCycles, studentDocuments, studentFitProfiles, studentProfiles, studentInboxConnections, universityCommunicationAuditEvents, universityCommunications, universityContacts, universityFollowUpNotifications, universityFollowUpPlans, userKeys, users, waitlistEntries, workspaceProfiles } from "../drizzle/schema";
+import { applicationEvents, applicationMilestones, deadlineNotifications, emailVerifications, familyInvites, germanyProgrammeDeadlineHandoffs, germanyProgrammeIndex, italyProgrammeIndex, InsertUser, personalReminders, programmeResearchBriefings, reminderPreferences, savedGermanyProgrammes, savedItalyProgrammes, savedUniversities, studentConsultationCycles, studentDocuments, studentFitProfiles, studentProfiles, studentInboxConnections, universityCommunicationAuditEvents, universityCommunications, universityContacts, universityFollowUpNotifications, universityFollowUpPlans, userKeys, users, waitlistEntries, workspaceProfiles } from "../drizzle/schema";
 import { adminIntakeRecords, adminIntakeUploads, prospectiveStudents } from "../drizzle/schema";
 import { storagePut } from "./storage";
 import { decryptForUser, encryptForUser } from "./_core/userCrypto";
 import { MAX_EMAILS_PER_CONTACT_PER_24H, MAX_STUDENT_UNIVERSITY_EMAILS_PER_24H } from "./universityCommunicationPolicy";
+import { deliverDueUniversityFollowUps } from "./domain/followUpDelivery";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -53,6 +54,14 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
     textFields.forEach(assignNullable);
 
+    if (user.passwordHash !== undefined) {
+      values.passwordHash = user.passwordHash;
+      updateSet.passwordHash = user.passwordHash;
+    }
+    if (user.emailVerifiedAt !== undefined) {
+      values.emailVerifiedAt = user.emailVerifiedAt;
+      updateSet.emailVerifiedAt = user.emailVerifiedAt;
+    }
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
@@ -429,7 +438,11 @@ export async function listApplicationEvents(userId: number, filter?: { programme
 export async function listUniversityRelationshipWorkspace(userId: number) {
   const db = await getDb();
   if (!db) return { contacts: [], communications: [], followUpPlans: [], auditEvents: [], inboxConnection: null };
-  await db.update(universityFollowUpPlans).set({ status: "draft_ready" }).where(and(eq(universityFollowUpPlans.userId, userId), eq(universityFollowUpPlans.status, "planned"), lte(universityFollowUpPlans.dueAt, new Date())));
+  // Due follow-up plans are promoted through the delivering path (notification
+  // insert + promotion), never a bare status flip — otherwise loading the
+  // workspace before the scheduler fires would silently swallow the alert.
+  const profile = await getStudentProfile(userId);
+  await createDueUniversityFollowUpNotifications(userId, profile?.preferredLanguage === "ar" ? "ar" : "en", new Date());
   const [contacts, communications, followUpPlans, auditEvents, inboxConnection] = await Promise.all([
     db.select({ id: universityContacts.id, universityId: universityContacts.universityId, university: savedUniversities.university, program: savedUniversities.program, contactName: universityContacts.contactName, contactRole: universityContacts.contactRole, email: universityContacts.email, phone: universityContacts.phone, portalUrl: universityContacts.portalUrl, relationshipStage: universityContacts.relationshipStage, contactPreference: universityContacts.contactPreference, studentConfirmedAt: universityContacts.studentConfirmedAt, lastContactAt: universityContacts.lastContactAt, nextFollowUpAt: universityContacts.nextFollowUpAt }).from(universityContacts).innerJoin(savedUniversities, eq(universityContacts.universityId, savedUniversities.id)).where(eq(universityContacts.userId, userId)).orderBy(desc(universityContacts.updatedAt)),
     db.select({ id: universityCommunications.id, universityId: universityCommunications.universityId, university: savedUniversities.university, program: savedUniversities.program, contactId: universityCommunications.contactId, direction: universityCommunications.direction, status: universityCommunications.status, subject: universityCommunications.subject, body: universityCommunications.body, category: universityCommunications.category, aiNextStep: universityCommunications.aiNextStep, aiReviewNote: universityCommunications.aiReviewNote, studentApprovedAt: universityCommunications.studentApprovedAt, sentAt: universityCommunications.sentAt, receivedAt: universityCommunications.receivedAt, createdAt: universityCommunications.createdAt }).from(universityCommunications).innerJoin(savedUniversities, eq(universityCommunications.universityId, savedUniversities.id)).where(eq(universityCommunications.userId, userId)).orderBy(desc(universityCommunications.createdAt)),
@@ -1051,17 +1064,11 @@ export async function createDeadlineAlertsForSchedule(scheduleCronTaskUid: strin
 export async function createDueUniversityFollowUpNotifications(userId: number, locale: "en" | "ar", referenceDate = new Date()) {
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable");
-  const duePlans = await db.select({ id: universityFollowUpPlans.id, university: savedUniversities.university, reason: universityFollowUpPlans.reason }).from(universityFollowUpPlans).innerJoin(savedUniversities, eq(universityFollowUpPlans.universityId, savedUniversities.id)).where(and(eq(universityFollowUpPlans.userId, userId), eq(universityFollowUpPlans.status, "planned"), lte(universityFollowUpPlans.dueAt, referenceDate)));
-  let created = 0;
-  for (const plan of duePlans) {
-    const alertKey = `university-follow-up:${userId}:${plan.id}`;
-    const title = locale === "ar" ? `وقت تراجع ${plan.university}` : `Time to review ${plan.university}`;
-    const body = locale === "ar" ? `متابعة: ${plan.reason}. جهّز أو راجع المسودة، بس الإرسال بيضل قرارك.` : `Follow-up: ${plan.reason}. Prepare or review a draft, but sending remains your decision.`;
-    await db.insert(universityFollowUpNotifications).values({ userId, followUpPlanId: plan.id, alertKey, title, body, locale }).onConflictDoUpdate({ target: universityFollowUpNotifications.alertKey, set: { alertKey } });
-    await db.update(universityFollowUpPlans).set({ status: "draft_ready" }).where(eq(universityFollowUpPlans.id, plan.id));
-    created += 1;
-  }
-  return created;
+  return deliverDueUniversityFollowUps({ userId, locale }, {
+    listDuePlans: () => db.select({ id: universityFollowUpPlans.id, university: savedUniversities.university, reason: universityFollowUpPlans.reason }).from(universityFollowUpPlans).innerJoin(savedUniversities, eq(universityFollowUpPlans.universityId, savedUniversities.id)).where(and(eq(universityFollowUpPlans.userId, userId), eq(universityFollowUpPlans.status, "planned"), lte(universityFollowUpPlans.dueAt, referenceDate))),
+    deliverNotification: (notification) => db.insert(universityFollowUpNotifications).values(notification).onConflictDoUpdate({ target: universityFollowUpNotifications.alertKey, set: { alertKey: notification.alertKey } }),
+    promotePlan: (planId) => db.update(universityFollowUpPlans).set({ status: "draft_ready" }).where(eq(universityFollowUpPlans.id, planId)),
+  });
 }
 
 export async function listUniversityFollowUpNotifications(userId: number) {
@@ -1225,4 +1232,38 @@ export async function commitAdminIntakeRecord(adminUserId: number, recordId: num
   const prospect = await db.select().from(prospectiveStudents).where(eq(prospectiveStudents.sourceRecordId, record.id)).limit(1);
   await db.update(adminIntakeRecords).set({ reviewStatus: "committed", prospectiveStudentId: prospect[0]?.id ?? null, committedAt: new Date() }).where(eq(adminIntakeRecords.id, record.id));
   return prospect[0] ?? null;
+}
+
+// --- Email ownership codes (#163) ---
+
+export async function insertEmailVerification(record: { email: string; purpose: string; codeHash: string; attempts: number; consumedAt: Date | null; expiresAt: Date; createdAt: Date }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is unavailable");
+  await db.insert(emailVerifications).values(record);
+}
+
+export async function getLatestEmailVerification(email: string, purpose: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is unavailable");
+  const rows = await db.select().from(emailVerifications).where(and(eq(emailVerifications.email, email), eq(emailVerifications.purpose, purpose))).orderBy(desc(emailVerifications.createdAt)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function countEmailVerificationsSince(email: string, purpose: string, since: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is unavailable");
+  const rows = await db.select({ id: emailVerifications.id }).from(emailVerifications).where(and(eq(emailVerifications.email, email), eq(emailVerifications.purpose, purpose), gte(emailVerifications.createdAt, since)));
+  return rows.length;
+}
+
+export async function markEmailVerificationConsumed(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is unavailable");
+  await db.update(emailVerifications).set({ consumedAt: new Date() }).where(eq(emailVerifications.id, id));
+}
+
+export async function saveEmailVerificationAttempts(id: number, attempts: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is unavailable");
+  await db.update(emailVerifications).set({ attempts }).where(eq(emailVerifications.id, id));
 }

@@ -59,6 +59,8 @@ export const users = pgTable("users", {
   tokenVersion: integer("token_version").default(0).notNull(),
   /** Self-selected feature tier. Payment wiring is deferred; activation is manual for now. */
   plan: usersPlanEnum("plan").default("free").notNull(),
+  /** Set when the email ownership challenge is passed. Google sign-ins are trusted at link time; password accounts gate on this before login. */
+  emailVerifiedAt: timestamp("email_verified_at"),
   role: usersRoleEnum("role").default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
@@ -631,3 +633,20 @@ export const aiUsageCounters = pgTable("ai_usage_counters", {
   usageDate: varchar("usage_date", { length: 10 }).notNull(),
   callCount: integer("call_count").default(0).notNull(),
 }, (table) => [uniqueIndex("ai_usage_user_date_unique").on(table.userId, table.usageDate)]);
+
+/**
+ * Time-limited email ownership codes (#163). The hashed code is the only
+ * thing stored — a database leak cannot reveal usable codes. Attempts are
+ * counted per row so brute-forcing a code dies at 5 tries long before the
+ * 10-minute expiry, and the endpoint itself is IP rate-limited.
+ */
+export const emailVerifications = pgTable("email_verifications", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  email: varchar("email", { length: 320 }).notNull(),
+  purpose: varchar("purpose", { length: 32 }).default("registration").notNull(),
+  codeHash: text("code_hash").notNull(),
+  attempts: integer("attempts").default(0).notNull(),
+  consumedAt: timestamp("consumed_at"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [index("email_verification_email_idx").on(table.email, table.createdAt)]);

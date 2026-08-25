@@ -1,6 +1,6 @@
 import { invokeLLM } from "../integrations/llm";
 import { assertAiWithinPlan, recordAiCall } from "./planLimits";
-import { readRecentUniversityGmailReplies, sendApprovedGmailMessage } from "../gmailConnection";
+import { getEmailProvider, type EmailProvider } from "../integrations/email";
 import {
   categorizeUniversityInboundCommunication,
   getStudentGmailConnectionForServer,
@@ -12,6 +12,8 @@ import {
   markUniversityCommunicationSent,
   prepareApprovedUniversityCommunicationForSend,
 } from "../db";
+
+const provider = getEmailProvider();
 
 import { universityDraftJsonSchema, universityDraftSchema, universityDraftSystemPrompt, universityReplyClassificationJsonSchema, universityReplyClassificationPrompt, universityReplyClassificationSchema } from "../universityCommunicationAI";
 type UserId = Parameters<typeof getStudentGmailConnectionForServer>[0];
@@ -45,7 +47,7 @@ export async function sendApprovedUniversityCommunication(userId: UserId, commun
   if (!inbox) throw new Error("Connect your Gmail inbox in Settings before sending.");
   const approved = await prepareApprovedUniversityCommunicationForSend(userId, communicationId);
   try {
-    const sent = await sendApprovedGmailMessage({ encryptedRefreshToken: inbox.encryptedRefreshToken, to: approved.contact.email, subject: approved.communication.subject, body: approved.communication.body, communicationId, threadId: approved.communication.providerThreadId });
+    const sent = await provider.sendApproved({ encryptedRefreshToken: inbox.encryptedRefreshToken, to: approved.contact.email, subject: approved.communication.subject, body: approved.communication.body, communicationId, threadId: approved.communication.providerThreadId });
     return markUniversityCommunicationSent(userId, { communicationId, ...sent });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Gmail delivery failed";
@@ -57,7 +59,7 @@ export async function sendApprovedUniversityCommunication(userId: UserId, commun
 export async function syncUniversityRepliesFromInbox(userId: UserId, language: "en" | "ar") {
   const [inbox, contacts] = await Promise.all([getStudentGmailConnectionForServer(userId), listUniversityContactsForInboxSync(userId)]);
   if (!inbox) throw new Error("Connect your Gmail inbox in Settings before syncing replies.");
-  const replies = await readRecentUniversityGmailReplies({ encryptedRefreshToken: inbox.encryptedRefreshToken, confirmedContactEmails: contacts.map((contact) => contact.email) });
+  const replies = await provider.listRecentInbound({ encryptedRefreshToken: inbox.encryptedRefreshToken, confirmedContactEmails: contacts.map((contact) => contact.email) });
   const contactsByEmail = new Map(contacts.map((contact) => [contact.email.toLowerCase(), contact]));
   let imported = 0;
   for (const reply of replies.slice(0, 10)) {

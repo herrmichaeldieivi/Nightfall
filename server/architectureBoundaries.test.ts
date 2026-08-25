@@ -69,4 +69,14 @@ describe("architecture boundaries (docs/architecture.md §3)", () => {
     );
     expect(violations).toEqual([]);
   });
+
+  it("server/domain must not import gmailConnection or integrations/email internals", () => {
+    const domainFiles = walk(join(SERVER_DIR, "domain"));
+    const violations = domainFiles.flatMap((f) =>
+      importStatements(f)
+        .filter((i) => /gmailConnection|integrations\/email\/(gmail|types)/.test(i.spec) && !isTypeOnlyImport(i.statement))
+        .map((i) => `${f}: ${i.spec}`)
+    );
+    expect(violations).toEqual([]);
+  });
 });

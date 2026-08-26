@@ -100,9 +100,10 @@ async function startServer() {
     }
   });
 
-  // Self-hosted credential auth. Registration is gated by #163: a time-limited
-  // code must be requested for the email, verified, and the resulting unlock
-  // token presented — acting as both an ownership check and a rate-limit gate.
+  // Self-hosted credential auth. Registration and sign-in are gated by
+  // #163/#164: a time-limited code must be requested for the email, verified,
+  // and the resulting unlock token presented — acting as both an ownership
+  // check and a rate-limit gate.
   app.post("/api/auth/request-code", authLimiter, async (req, res) => {
     try {
       const result = await requestEmailCode(req.body?.email ?? "");
@@ -137,7 +138,7 @@ async function startServer() {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const user = await loginUser({ email: req.body?.email ?? "", password: req.body?.password ?? "" });
+      const user = await loginUser({ email: req.body?.email ?? "", password: req.body?.password ?? "", unlockToken: req.body?.unlockToken ?? "" });
       setSessionCookie(res, await createSessionToken(user));
       return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
     } catch (error) {

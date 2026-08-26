@@ -39,6 +39,12 @@ const plugins = [
 
 export default defineConfig({
   plugins,
+  // tsconfig sets "jsx": "preserve", which esbuild treats as the classic
+  // runtime and emits React.createElement without a React import. Pin the
+  // automatic runtime so JSX never needs a global React.
+  esbuild: {
+    jsx: "automatic",
+  },
   resolve: {
     alias: {
       "@": path.resolve(PROJECT_ROOT, "client", "src"),
@@ -56,6 +62,11 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: ["localhost", "127.0.0.1"],
+    // Fixed HMR port so a second dev instance (or a stale one on :3000)
+    // doesn't steal the default and break the client's websocket.
+    hmr: {
+      port: 24679,
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],

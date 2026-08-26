@@ -104,12 +104,16 @@ export async function registerUser(input: { email: string; name: string; passwor
   return db.getUserByOpenId(openId);
 }
 
-export async function loginUser(input: { email: string; password: string }) {
+export async function loginUser(input: { email: string; password: string; unlockToken: string }) {
   const email = input.email.trim().toLowerCase();
+  // #164 gate: sign-in, like registration, only proceeds with an unlock token
+  // minted after a verified time-limited code was confirmed for exactly this
+  // email address — acting as both an ownership check and a rate-limit gate.
+  await assertEmailUnlockToken(input.unlockToken ?? "", email);
   const user = await db.getUserByEmail(email);
   if (!user || !verifyPassword(input.password, user.passwordHash)) throw new Error("Email or password is incorrect.");
   // Note: no emailVerifiedAt hard gate here. Registration (#163) guarantees
-  // verification for every new password account; a hard login gate would lock
-  // out accounts created before the feature existed.
+  // verification for every new password account; the #164 login code gate
+  // covers legacy accounts without locking them out.
   return user;
 }

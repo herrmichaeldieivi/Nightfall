@@ -29,9 +29,9 @@
 }
 
 :root {
-  --background: #0c0e0f;
-  --foreground: #f1f3ee;
-  --card: #131719;
+  --background: #090b12;
+  --foreground: #f7f5ef;
+  --card: #121827;
   --card-foreground: #f1f3ee;
   --popover: #161b1d;
   --popover-foreground: #f1f3ee;
@@ -47,27 +47,28 @@
   --destructive-foreground: #0c0e0f;
   --border: rgba(203, 219, 212, .12);
   --input: #181e20;
-  --ring: #80d7d2;
-  --radius: 4px;
+  --ring: #9fdcff;
+  --radius: 18px;
 }
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html { background: #0c0e0f; }
+  html { background: #090b12; }
   body { @apply bg-background text-foreground; min-width: 320px; font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif; }
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]), a[href] { @apply cursor-pointer; }
   ::selection { background: rgba(128,215,210,.22); color: #f1f3ee; }
 }
 
 @layer components {
-  .nf-shell { filter: grayscale(1); background: radial-gradient(circle at 76% 2%, rgba(255,255,255,.04), transparent 24rem), #0c0e0f; }
+  .nf-shell { background: radial-gradient(circle at 12% 0%, rgba(159,220,255,.16), transparent 24rem), radial-gradient(circle at 88% 12%, rgba(210,164,255,.13), transparent 26rem), #090b12; }
   .nf-dot-field { background-image: radial-gradient(circle, rgba(241,243,238,.18) 1px, transparent 1.15px); background-size: 12px 12px; mask-image: radial-gradient(ellipse at center, black 12%, transparent 72%); }
   .nf-grid { background-image: linear-gradient(rgba(154,169,163,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(154,169,163,.055) 1px, transparent 1px); background-size: 28px 28px; }
-  .nf-panel { position: relative; overflow: hidden; border: 1px solid rgba(203,219,212,.13); background: rgba(19,23,25,.92); }
-  .nf-panel-subtle { border: 1px solid rgba(203,219,212,.1); background: rgba(255,255,255,.018); }
+  .nf-panel { position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.12); border-radius: 24px; background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.035)); box-shadow: 0 24px 80px rgba(0,0,0,.32); backdrop-filter: blur(22px); }
+  .nf-panel-subtle { border: 1px solid rgba(255,255,255,.1); border-radius: 20px; background: rgba(255,255,255,.045); }
   .nf-mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
   .nf-label { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10px; font-weight: 500; letter-spacing: .08em; line-height: 1.2; text-transform: uppercase; }
-  .nf-button { transition: color 150ms cubic-bezier(.23,1,.32,1), background-color 150ms cubic-bezier(.23,1,.32,1), border-color 150ms cubic-bezier(.23,1,.32,1), transform 150ms cubic-bezier(.23,1,.32,1); }
+  .nf-button { border-radius: 999px; transition: color 150ms cubic-bezier(.23,1,.32,1), background-color 150ms cubic-bezier(.23,1,.32,1), border-color 150ms cubic-bezier(.23,1,.32,1), box-shadow 150ms cubic-bezier(.23,1,.32,1), transform 150ms cubic-bezier(.23,1,.32,1); }
+  .nf-button:hover { box-shadow: 0 14px 42px rgba(159,220,255,.14); }
   .nf-button:active { transform: scale(.97); }
   .nf-row { transition: background-color 150ms cubic-bezier(.23,1,.32,1), border-color 150ms cubic-bezier(.23,1,.32,1); }
   .nf-row:hover { background: rgba(128,215,210,.045); }
@@ -76,15 +77,15 @@
   .nf-nav-active { background: rgba(128,215,210,.1); color: #8be0da; box-shadow: inset 2px 0 0 #80d7d2; }
   .nf-status { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 9px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
   .nf-panel > * { position: relative; z-index: 1; }
-  .nf-panel::before { content: ""; position: absolute; right: 0; top: 0; height: 1px; width: 64px; background: linear-gradient(90deg, transparent, rgba(241,243,238,.4)); }
-  .nf-panel::after { content: ""; pointer-events: none; position: absolute; right: -22px; top: -20px; width: 190px; height: 150px; opacity: .24; background-image: radial-gradient(circle, rgba(241,243,238,.38) 1px, transparent 1.15px); background-size: 11px 11px; mask-image: radial-gradient(ellipse at center, black 8%, transparent 70%); }
+  .nf-panel::before { content: ""; position: absolute; right: 0; top: 0; height: 1px; width: 140px; background: linear-gradient(90deg, transparent, rgba(159,220,255,.7), rgba(210,164,255,.5)); }
+  .nf-panel::after { content: ""; pointer-events: none; position: absolute; right: -40px; top: -42px; width: 210px; height: 190px; opacity: .34; background: radial-gradient(circle, rgba(159,220,255,.55), transparent 62%), radial-gradient(circle at 30% 70%, rgba(210,164,255,.45), transparent 55%); filter: blur(18px); }
   .nf-scroll::-webkit-scrollbar { height: 7px; width: 7px; }
   .nf-scroll::-webkit-scrollbar-track { background: transparent; }
   .nf-scroll::-webkit-scrollbar-thumb { background: rgba(203,219,212,.18); }
   [dir="rtl"] { font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif; overflow-x: hidden; }
   [dir="rtl"] .nf-mono, [dir="rtl"] .nf-label, [dir="rtl"] .nf-status { font-family: "IBM Plex Mono", "IBM Plex Sans Arabic", monospace; letter-spacing: 0; }
   [dir="rtl"] input:not([dir="ltr"]), [dir="rtl"] textarea, [dir="rtl"] select { text-align: right; }
-  .night-bloom { background: radial-gradient(circle at 72% 26%, rgba(255,255,255,.16), transparent 0 9rem, rgba(255,255,255,.05) 9.1rem, transparent 9.3rem), radial-gradient(circle at 76% 32%, rgba(255,255,255,.08), transparent 24rem), #0b0d0e; }
+  .night-bloom { background: radial-gradient(circle at 18% 10%, rgba(159,220,255,.16), transparent 27rem), radial-gradient(circle at 82% 18%, rgba(210,164,255,.16), transparent 25rem), radial-gradient(circle at 52% 82%, rgba(127,255,212,.08), transparent 27rem), #090b12; }
   .night-orbit { border: 1px solid rgba(241,243,238,.18); border-radius: 999px; }
   [dir="rtl"] .nf-enter-a { animation-name: nf-rise-rtl; }
   [dir="rtl"] .transition-transform { transform-origin: right center; }
@@ -98,17 +99,22 @@
   @keyframes nf-rise-rtl { from { opacity: 0; transform: translateX(7px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes nf-live { 50% { opacity: .42; } }
   /* Landing-page reference layout (ported from the static Nightfall reconstruction) */
-  .hero-matrix { background: radial-gradient(circle at 77% 34%, rgba(255,255,255,.12), transparent 14rem), #0c0e0f; }
-  [dir="rtl"] .hero-matrix { background: radial-gradient(circle at 23% 34%, rgba(255,255,255,.12), transparent 14rem), #0c0e0f; }
-  .hero-shade { background: linear-gradient(90deg, #0c0e0f 0%, rgba(12,14,15,.95) 34%, rgba(12,14,15,.25) 76%, #0c0e0f 100%); }
-  [dir="rtl"] .hero-shade { background: linear-gradient(270deg, #0c0e0f 0%, rgba(12,14,15,.95) 34%, rgba(12,14,15,.25) 76%, #0c0e0f 100%); }
-  .hero-lines { background-image: linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: min(12vw, 160px) 100%; mask-image: linear-gradient(90deg, black, transparent 72%); opacity: .34; }
+  .hero-matrix { background: radial-gradient(circle at 18% 15%, rgba(159,220,255,.24), transparent 23rem), radial-gradient(circle at 86% 26%, rgba(210,164,255,.21), transparent 25rem), radial-gradient(circle at 58% 72%, rgba(127,255,212,.1), transparent 28rem), #090b12; }
+  [dir="rtl"] .hero-matrix { background: radial-gradient(circle at 82% 15%, rgba(159,220,255,.24), transparent 23rem), radial-gradient(circle at 14% 26%, rgba(210,164,255,.21), transparent 25rem), radial-gradient(circle at 42% 72%, rgba(127,255,212,.1), transparent 28rem), #090b12; }
+  .hero-shade { background: linear-gradient(90deg, rgba(9,11,18,.98) 0%, rgba(9,11,18,.72) 38%, rgba(9,11,18,.22) 72%, rgba(9,11,18,.86) 100%); }
+  [dir="rtl"] .hero-shade { background: linear-gradient(270deg, rgba(9,11,18,.98) 0%, rgba(9,11,18,.72) 38%, rgba(9,11,18,.22) 72%, rgba(9,11,18,.86) 100%); }
+  .hero-lines { background-image: linear-gradient(90deg, rgba(159,220,255,.07) 1px, transparent 1px), linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px); background-size: min(12vw, 160px) 100%, 100% 96px; mask-image: linear-gradient(90deg, black, transparent 72%); opacity: .48; }
   [dir="rtl"] .hero-lines { transform: scaleX(-1); }
   [dir="rtl"] .nf-hero-title { text-align: right; text-wrap: balance; }
   .nf-hero-copy { position: relative; isolation: isolate; }
-  .nf-hero-copy::before { content: ""; position: absolute; inset: -1.2rem -1.5rem -1.5rem; z-index: -1; border-left: 1px solid rgba(128,215,210,.48); background: linear-gradient(90deg, rgba(12,14,15,.9) 0%, rgba(12,14,15,.63) 68%, transparent 100%); }
-  [dir="rtl"] .nf-hero-copy::before { border-left: 0; border-right: 1px solid rgba(128,215,210,.48); background: linear-gradient(270deg, rgba(12,14,15,.9) 0%, rgba(12,14,15,.63) 68%, transparent 100%); }
-  .hero-kicker { text-shadow: 0 0 18px rgba(128,215,210,.2); }
+  .nf-hero-copy::before { content: ""; position: absolute; inset: -1.2rem -1.5rem -1.5rem; z-index: -1; border-left: 1px solid rgba(159,220,255,.55); border-radius: 28px; background: linear-gradient(90deg, rgba(9,11,18,.72) 0%, rgba(9,11,18,.38) 68%, transparent 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); backdrop-filter: blur(8px); }
+  [dir="rtl"] .nf-hero-copy::before { border-left: 0; border-right: 1px solid rgba(159,220,255,.55); background: linear-gradient(270deg, rgba(9,11,18,.72) 0%, rgba(9,11,18,.38) 68%, transparent 100%); }
+  .hero-kicker { color: #9fdcff; text-shadow: 0 0 24px rgba(159,220,255,.45); }
+  .nf-gradient-text { background: linear-gradient(110deg, #fffaf0 0%, #9fdcff 44%, #d2a4ff 78%, #fffaf0 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .nf-orb { position: absolute; border-radius: 999px; pointer-events: none; filter: blur(8px); opacity: .72; }
+  .nf-orb-a { width: 16rem; height: 16rem; background: rgba(159,220,255,.16); left: 8%; top: 18%; }
+  .nf-orb-b { width: 19rem; height: 19rem; background: rgba(210,164,255,.14); right: 8%; top: 14%; }
+  .nf-orb-c { width: 13rem; height: 13rem; background: rgba(127,255,212,.1); left: 54%; bottom: 10%; }
   .section-rule { border-top: 1px solid rgba(241,243,238,.1); }
   .nf-type-heading { min-height: 1.8em; }
   .nf-type-cursor { display: inline-block; width: 2px; height: .8em; margin-inline-start: .08em; background: currentColor; vertical-align: -.05em; animation: nf-cursor 720ms steps(1, end) infinite; }
